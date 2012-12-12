@@ -1,0 +1,153 @@
+<html>
+  <head>
+  	<title>Coconut</title>
+    <!--
+    <link href="css/jquery.mobile-1.1.0.min.css" type="text/css" rel="stylesheet" />
+    -->
+  <style>
+    span{
+      border-style: solid;
+      font-size: 400%;
+    }
+    div#createdWords{
+      border-style: solid;
+      width:50%;
+      height: 33%;
+      margin: 20px auto;
+      text-align: center;
+      font-size: 500%;
+    }
+    .phoneme-selector,.created-words,.available-phonemes{
+      display: none;
+    }
+    .phoneme-button{
+      color: #000300;
+      background-color: #00910A;
+      padding: 10px;
+      position: relative;
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+     
+      box-shadow:
+        1px 1px 0 0 #014D06,
+        2px 2px 0 0 #014D06,
+        3px 3px 0 0 #014D06,
+        4px 4px 0 0 #014D06,
+        5px 5px 5px 0 #000000;
+     
+      -webkit-box-shadow:
+        1px 1px 0 0 #014D06,
+        2px 2px 0 0 #014D06,
+        3px 3px 0 0 #014D06,
+        4px 4px 0 0 #014D06,
+        5px 5px 5px 0 #000000;
+     
+      -moz-box-shadow:
+        1px 1px 0 0 #014D06,
+        2px 2px 0 0 #014D06,
+        3px 3px 0 0 #014D06,
+        4px 4px 0 0 #014D06,
+        5px 5px 5px 0 #000000;
+     
+      border-radius: 10px;
+      -webkit-border-radius: 10px;
+      -moz-border-radius: 10px;
+     
+      -webkit-transition: background-color 0.2s linear;
+      transition: background-color 0.2s linear;
+
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+  .phoneme-button:active {
+    box-shadow: 1px 1px 5px 0 #000000;
+    -webkit-box-shadow: 1px 1px 5px 0 #000000;    
+    -moz-box-shadow: 1px 1px 5px 0 #000000;
+  }
+   
+  .phoneme-button:hover { background-color: #00B00C; }
+
+  </style>
+  </head>
+  <body>
+    <div id='navigation'>
+      <a href='#joinPhonemes'>Join Phonemes</a>
+      <a href='#availablePhonemes'>Edit Phonemes</a>
+      <a href='#listenPhonemes'>Listen to Phonemes</a>
+    
+    </div>
+    <div id='content'>
+
+      <div class='created-words'>
+        <div id='createdWords'></div>
+        <button type='button'>Clear</button><br/>
+      </div>
+
+      <div class='phoneme-selector'>
+        <div id='phonemeSelector'></div>
+      </div>
+
+      <div class='available-phonemes'>
+        <label for='availablePhonemes'>Edit Available Phoneme List</label><br/>
+        <textarea id='availablePhonemes'>a,b,c,d,e,th,ch</textarea>
+      </div>
+    </div>
+    
+  </body>
+  <script type="text/javascript" src="jquery-1.7.2.min.js"></script>
+  <script type="text/javascript" src="underscore-min.js"></script>
+  <script type="text/javascript" src="coffee-script.js"></script>
+  <script type="text/javascript" src="backbone-min.js"></script>
+  <script type='text/coffeescript'>
+
+    class Router extends Backbone.Router
+      routes:
+        "": ""
+        "joinPhonemes": "joinPhonemes"
+        "availablePhonemes": "availablePhonemes"
+        "listenPhonemes": "listenPhonemes"
+
+      availablePhonemes: () ->
+        $("#content>div").hide()
+        $(".available-phonemes").show()
+
+      joinPhonemes: () ->
+        $("#content>div").hide()
+        $(".phoneme-selector").show()
+        $(".created-words").show()
+
+      listenPhonemes: () ->
+        $("#content>div").hide()
+        $(".phoneme-selector").show()
+        $(".created-words").hide()
+
+
+    updatePhonemes = ->
+      phonemes = $("#availablePhonemes").val().split(/, */)
+      $('#phonemeSelector').html _.map(phonemes, (phoneme) ->
+        "<span class='phoneme-button'>#{phoneme}</span> "
+      ).join("")
+
+    updatePhonemes()
+
+    $(document).on "change", "#availablePhonemes", updatePhonemes
+    $(document).on "click", "#phonemeSelector span", (event) ->
+      switch Backbone.history.fragment
+        when "joinPhonemes"
+          $('#createdWords').append $(event.target).text()
+        when "listenPhonemes"
+          console.log $(event.target).text()
+    $(document).on "click", "button", (event) ->
+      $('#createdWords').html ""
+
+    router = new Router()
+    Backbone.history.start()
+  </script>
+</html>
+
