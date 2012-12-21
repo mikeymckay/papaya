@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <title></title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no;" />
+    <meta charset="utf-8">
+
+    <script type="text/javascript" charset="utf-8" src="js/cordova-2.2.0.js"></script>
+    <script type="text/javascript" src="js/jquery-1.7.2.min.js"></script>
+
+    <script type="text/javascript">
+
+        var deviceready = false;
+        var mediaVar = null;
+        var recordFileName = "recording.wav";
+        var status = null;
+        var isIOS = false;
+
+        function onBodyLoad()
+        {        
+            document.addEventListener("deviceready", onDeviceReady, false);
+            deviceready = true;
+        }
+
+        $(document).ready(function(){
+            $("#stopBtn").hide();
+            $("#playBtn").hide();
+
+            //validation to check if device is ready is skipped
+
+            $("#recordBtn").click(function(){
+                record();                  
+            });
+
+            $("#playBtn").click(function(){
+                play();
+            });
+
+            $("#stopBtn").click(function(){
+                stop();
+            });
+        });
+
+        function record()
+        {
+            createMedia(function(){
+                status = "recording";
+                mediaVar.startRecord();
+                $("#recordBtn").hide();
+                $("#stopBtn").show();
+                $("#playBtn").hide();
+            },onStatusChange);
+        }
+
+        function createMedia(onMediaCreated, mediaStatusCallback){
+            if (mediaVar != null) {
+                onMediaCreated();
+                return;
+            }
+
+            if (typeof mediaStatusCallback == 'undefined') 
+                mediaStatusCallback = null;
+
+            if (isIOS) {
+                //first create the file
+                window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fileSystem){
+                    fileSystem.root.getFile(recordFileName, {
+                        create: true,
+                        exclusive: false
+                    }, function(fileEntry){
+                        log("File " + recordFileName + " created at " + fileEntry.fullPath);
+                        mediaVar = new Media(fileEntry.fullPath, function(){
+                            log("Media created successfully");
+                        }, onError, mediaStatusCallback); //of new Media
+                        onMediaCreated();
+                    }, onError); //of getFile
+                }, onError); //of requestFileSystem
+            } else //it's Android
+            {
+                      
+                mediaVar = new Media(recordFileName, function(){
+                    log("Media created successfully:" + recordFileName);
+                }, onError, mediaStatusCallback); 
+                onMediaCreated();
+            }
+        }
+
+        function stop()
+        {
+            if (mediaVar == null)
+                return;
+
+            if (status == 'recording')
+            {
+                mediaVar.stopRecord();
+                log("Recording stopped");
+            }
+            else if (status == 'playing')
+            {
+                mediaVar.stop();            
+                log("Play stopped");
+            } 
+            else
+            {
+                log("Nothing stopped");
+            }
+            $("#recordBtn").show();
+            $("#stopBtn").hide();
+            $("#playBtn").show();
+            status = 'stopped';
+        }
+
+        function play()
+        {
+            createMedia(function(){
+                status = "playing";
+//                mediaVar.play();    
+                (new Media(recordFileName)).play()
+//                (new Media(recordFileName)).play()
+//                (new Media("/android_asset/www/child_a.mp3")).play()
+                log("ccccc");
+                $("#recordBtn").hide();
+                $("#stopBtn").show();
+                $("#playBtn").hide();
+            });
+        }
+
+        function onStatusChange()
+        {
+            if (arguments[0] == 4) //play stopped
+            {
+                $("#recordBtn").show();
+                $("#stopBtn").hide();
+                $("#playBtn").show();
+            } 
+        }
+
+        function onSuccess()
+        {
+            //do nothing
+        }
+
+        function onError(err)
+        {
+            if (typeof err.message != 'undefined')
+                err = err.message;
+            alert("Error : " + err);
+        }
+
+        function log(message)
+        {
+            if (isIOS)
+                console.log(message);
+            else
+                console.info(message);
+        }
+
+        function onDeviceReady()
+        {
+
+        }
+
+    </script>
+  </head>
+  <body onload="onBodyLoad()">
+      <input type="button" name="recordBtn" id="recordBtn" value="Record">
+      <input type="button" name="stopBtn" id="stopBtn" value="Stop">
+      <input type="button" name="playBtn" id="playBtn" value="Play">
+  </body>
+</html>
