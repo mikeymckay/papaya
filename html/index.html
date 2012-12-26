@@ -4,11 +4,11 @@
     <link rel="stylesheet" type="text/css" href="papaya.css" media="screen" />
   </head>
   <body>
+  <div class='container'>
     <div id='navigation'>
       <a href='#joinPhonemes'>Join Letters</a>
       <a href='#listenPhonemes'>Listen to Letter Sounds</a>
       <a href='#availablePhonemes'>Edit Available Letters</a>
-    
     </div>
     <div id='content'>
       <div class='logo'>
@@ -19,33 +19,27 @@
       </div>
 
       <div class='phoneme-selector'>
+
+        <div class='listen-phonemes'>
+          <div id="jplayer"></div>
+          <div id="listen-status"></div>
+
+        </div>
         <div id='phonemeSelector'></div>
+          <div id='voice-selector'>
+            <span class='voice selected' id='voice-child'>Child</span>
+            <span class='voice'  id='voice-female'>Female</span>
+            <span class='voice' id='voice-male'>Male</span>
+          </div>
       </div>
 
       <div class='available-phonemes'>
         <textarea id='availablePhonemes'>a,ma,c,d,e,th,ch</textarea>
       </div>
 
-      <div class='listen-phonemes'>
-        <div id="jplayer"></div>
-        <div id="listen-status"></div>
-
-        <div id='voice-selector'>
-          <div class='voice selected' id='voice-child'>Child</div>
-          <div class='voice'  id='voice-female'>Female</div>
-          <div class='voice' id='voice-male'>Male</div>
-        </div>
-      </div>
-
-      <div class='record-phonemes'>
-        <span id='recordingMessage' style='display:none'>Recording</span>
-        <button type='button' id='start-record'>Start</button>
-        <button type='button' id='stop-record'>Stop</button>
-      </div>
-
     </div>
 
-    
+    </div>
   </body>
 
   <script type="text/javascript" src="js/jquery-1.7.2.min.js"></script>
