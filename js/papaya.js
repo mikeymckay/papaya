@@ -17,7 +17,7 @@ Papaya = (function() {
     $('#phonemeSelector').html(_.map(phonemes, function(phoneme) {
       return "<span class='phoneme-button button'>" + phoneme + "</span> ";
     }).join(""));
-    return $('#phonemeSelector').append("      <span class='phoneme-button button meta'>space</span>      <span class='phoneme-button button meta'>clear</span>      <span id='record-start-stop' class='button record'>record my voice</span>      <span id='record-play' class='button record'>play my voice</span>    ");
+    return $('#phonemeSelector').append("      <span class='phoneme-button button meta'>space</span>      <span class='phoneme-button button meta'>clear</span>      <br/>      <span id='record-start-stop' class='button record'>record my voice</span>      <span id='record-play' class='button record'>play my voice</span>    ");
   };
 
   return Papaya;
@@ -36,25 +36,31 @@ Router = (function(_super) {
     "": "default",
     "joinPhonemes": "joinPhonemes",
     "availablePhonemes": "availablePhonemes",
-    "listenPhonemes": "listenPhonemes",
-    "recordPhonemes": "recordPhonemes"
+    "listenPhonemes": "listenPhonemes"
   };
 
   Router.prototype["default"] = function() {
     $("#content>div").hide();
-    return $(".logo").show();
+    $(".listen-phonemes").hide();
+    $(".logo").show();
+    return $("#voice-selector").hide();
   };
 
   Router.prototype.availablePhonemes = function() {
     $("#content>div").hide();
-    return $(".available-phonemes").show();
+    $(".listen-phonemes").hide();
+    $(".available-phonemes").show();
+    return $("#voice-selector").hide();
   };
 
   Router.prototype.joinPhonemes = function() {
     $("#content>div").hide();
+    $(".listen-phonemes").hide();
     $(".phoneme-selector").show();
     $(".created-words").show();
-    return $("span.record").hide();
+    $("span.record").hide();
+    $("span.meta").show();
+    return $("#voice-selector").hide();
   };
 
   Router.prototype.listenPhonemes = function() {
@@ -62,15 +68,8 @@ Router = (function(_super) {
     $(".phoneme-selector").show();
     $(".listen-phonemes").show();
     $("span.record").show();
-    return $("span.meta").hide();
-  };
-
-  Router.prototype.recordPhonemes = function() {
-    $("#content>div").hide();
-    $(".phoneme-selector").show();
-    $(".listen-phonemes").show();
-    $(".record-phonemes").show();
-    return $("span.meta").hide();
+    $("span.meta").hide();
+    return $("#voice-selector").show();
   };
 
   return Router;
@@ -140,7 +139,7 @@ $(document).on("click", ".phoneme-button", function(event) {
     case "listenPhonemes":
       phoneme = $(event.target).text();
       $("#listen-status").html(phoneme);
-      filename = "" + ($("#voice-selector div.selected").text().toLowerCase()) + "_" + phoneme + ".mp3";
+      filename = "" + ($("#voice-selector span.selected").text().toLowerCase()) + "_" + phoneme + ".mp3";
       if (Papaya.onPhonegap()) {
         return (new Media("/android_asset/www/" + filename)).play();
       } else {
@@ -168,7 +167,7 @@ $("#record-play").click(function() {
   return Papaya.recorder.play();
 });
 
-$("#voice-selector div").click(function(event) {
+$("#voice-selector span").click(function(event) {
   $(event.target).siblings().removeClass("selected");
   return $(event.target).addClass("selected");
 });
@@ -198,8 +197,8 @@ $(document).ready(function() {
       var filename, phoneme;
       if (error.jPlayer.error.type === "e_url") {
         phoneme = $("#listen-status").text();
-        filename = "" + ($("#voice-selector div.selected").text().toLowerCase()) + "_" + phoneme + ".mp3";
-        return $("#listen-status").append("<br><small>No sound file available (" + filename + ")</small>");
+        filename = "" + ($("#voice-selector span.selected").text().toLowerCase()) + "_" + phoneme + ".mp3";
+        return $("#listen-status").append("<br><span style='font-size:20px'>No sound file available (" + filename + ")</span>");
       }
     }
   });

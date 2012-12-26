@@ -10,6 +10,7 @@ class Papaya
     $('#phonemeSelector').append "
       <span class='phoneme-button button meta'>space</span>
       <span class='phoneme-button button meta'>clear</span>
+      <br/>
       <span id='record-start-stop' class='button record'>record my voice</span>
       <span id='record-play' class='button record'>play my voice</span>
     "
@@ -20,21 +21,27 @@ class Router extends Backbone.Router
     "joinPhonemes": "joinPhonemes"
     "availablePhonemes": "availablePhonemes"
     "listenPhonemes": "listenPhonemes"
-    "recordPhonemes": "recordPhonemes"
 
   default: () ->
     $("#content>div").hide()
+    $(".listen-phonemes").hide()
     $(".logo").show()
+    $("#voice-selector").hide()
 
   availablePhonemes: () ->
     $("#content>div").hide()
+    $(".listen-phonemes").hide()
     $(".available-phonemes").show()
+    $("#voice-selector").hide()
 
   joinPhonemes: () ->
     $("#content>div").hide()
+    $(".listen-phonemes").hide()
     $(".phoneme-selector").show()
     $(".created-words").show()
     $("span.record").hide()
+    $("span.meta").show()
+    $("#voice-selector").hide()
 
   listenPhonemes: () ->
     $("#content>div").hide()
@@ -42,13 +49,7 @@ class Router extends Backbone.Router
     $(".listen-phonemes").show()
     $("span.record").show()
     $("span.meta").hide()
-
-  recordPhonemes: () ->
-    $("#content>div").hide()
-    $(".phoneme-selector").show()
-    $(".listen-phonemes").show()
-    $(".record-phonemes").show()
-    $("span.meta").hide()
+    $("#voice-selector").show()
 
 class RecordAudio
   constructor: ->
@@ -92,7 +93,7 @@ $(document).on "click", ".phoneme-button", (event) ->
       $("#listen-status").html phoneme
 
       # Use the voice + letter to look for the mp3
-      filename = "#{$("#voice-selector div.selected").text().toLowerCase()}_#{phoneme}.mp3"
+      filename = "#{$("#voice-selector span.selected").text().toLowerCase()}_#{phoneme}.mp3"
       if Papaya.onPhonegap()
         (new Media("/android_asset/www/#{filename}")).play()
       else
@@ -113,7 +114,7 @@ $("#record-play").click ->
   $("#recordingMessage").hide()
   Papaya.recorder.play()
 
-$("#voice-selector div").click (event) ->
+$("#voice-selector span").click (event) ->
   $(event.target).siblings().removeClass "selected"
   $(event.target).addClass "selected"
 
@@ -140,8 +141,8 @@ $(document).ready () ->
     error: (error) ->
       if error.jPlayer.error.type is "e_url"
         phoneme = $("#listen-status").text()
-        filename = "#{$("#voice-selector div.selected").text().toLowerCase()}_#{phoneme}.mp3"
-        $("#listen-status").append "<br><small>No sound file available (#{filename})</small>"
+        filename = "#{$("#voice-selector span.selected").text().toLowerCase()}_#{phoneme}.mp3"
+        $("#listen-status").append "<br><span style='font-size:20px'>No sound file available (#{filename})</span>"
 $('#createdWords').css
   width: $(window).width()-20
   height: $(window).height()*(3/4)
