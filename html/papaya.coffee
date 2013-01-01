@@ -10,10 +10,19 @@ class Papaya
     $('#phonemeSelector').append "
       <span class='phoneme-button button meta'>space</span>
       <span class='phoneme-button button meta'>clear</span>
+      <span id='shift' class='phoneme-button button meta'>shift</span>
+      <br/>
       <br/>
       <span id='record-start-stop' class='button record'>record my voice</span>
       <span id='record-play' class='button record'>play my voice</span>
     "
+
+  @updateCreatedWordsDivSize = ->
+    $('#createdWords').css
+      width: $(window).width()-20
+      height: $(window).height()/2
+    console.log "w:"+ $('#createdWords').css("width")
+    console.log "h:"+ $('#createdWords').css("height")
 
 class Router extends Backbone.Router
   routes:
@@ -57,17 +66,18 @@ class RecordAudio
     @filename = "recording.wav"
     if Papaya.onPhonegap()
       @recordedSound = new Media(@filename)
+      console.log "created recordedSound"
     else
       Recorder.initialize
         swfSrc: "js/recorder.swf"
 
-  record: ->
+  record: =>
     if Papaya.onPhonegap() then @recordedSound.startRecord() else Recorder.record()
 
-  stop: ->
+  stop: =>
     if Papaya.onPhonegap() then @recordedSound.stopRecord() else Recorder.stop()
 
-  play: ->
+  play: =>
     #  Have to create a new Media object otherwise: Error calling method on NPObject
     if Papaya.onPhonegap() then (new Media(@filename)).play() else Recorder.play()
 
@@ -76,7 +86,10 @@ Papaya.updatePhonemes()
 # events
 
 $(document).on "change", "#availablePhonemes", Papaya.updatePhonemes
-$(document).on "click", ".phoneme-button", (event) ->
+
+clickortouch = if Papaya.onPhonegap() then "touchend" else "click"
+
+$(document).on clickortouch, ".phoneme-button", (event) ->
   switch Backbone.history.fragment
     when "joinPhonemes"
       phonemePressed = $(event.target).text()
@@ -85,6 +98,16 @@ $(document).on "click", ".phoneme-button", (event) ->
       else if phonemePressed is "clear"
         $('#createdWords').html ""
         return
+      else if phonemePressed is "shift"
+        $("#shift").toggleClass "shift-active"
+        return
+
+
+      if $("#shift").hasClass "shift-active"
+        console.log "ASDAS"
+        phonemePressed = phonemePressed.charAt(0).toUpperCase() + phonemePressed.slice(1)
+
+
       createdWords = $('#createdWords').text()
       $('#createdWords').html "#{createdWords}#{phonemePressed}"
       $('#createdWords').boxfit()
@@ -95,9 +118,9 @@ $(document).on "click", ".phoneme-button", (event) ->
       # Use the voice + letter to look for the mp3
       filename = "#{$("#voice-selector span.selected").text().toLowerCase()}_#{phoneme}.mp3"
       if Papaya.onPhonegap()
-        (new Media("/android_asset/www/#{filename}")).play()
+        (new Media("/android_asset/www/sounds/#{filename}")).play()
       else
-        $("#jplayer").jPlayer("setMedia",{mp3: filename})
+        $("#jplayer").jPlayer("setMedia",{mp3: "sounds/#{filename}"})
         $("#jplayer").jPlayer("play")
 
 $("#record-start-stop").click ->
@@ -118,21 +141,6 @@ $("#voice-selector span").click (event) ->
   $(event.target).siblings().removeClass "selected"
   $(event.target).addClass "selected"
 
-# five clicks within 3 seconds -> reload
-###
-timeOuts = []
-$(document).click ->
-  timeOuts.push(setTimeout ->
-    timeOuts.shift()
-  3000)
-    
-  if timeOuts.length is 5
-    _.each timeOuts, (x) ->
-      clearTimeout(timeOuts[x])
-    timeOuts = []
-    document.location.reload()
-###
-
 router = new Router()
 Backbone.history.start()
 
@@ -143,13 +151,17 @@ $(document).ready () ->
         phoneme = $("#listen-status").text()
         filename = "#{$("#voice-selector span.selected").text().toLowerCase()}_#{phoneme}.mp3"
         $("#listen-status").append "<br><span style='font-size:20px'>No sound file available (#{filename})</span>"
-$('#createdWords').css
-  width: $(window).width()-20
-  height: $(window).height()*(3/4)
 
-if @onPhonegap
+Papaya.updateCreatedWordsDivSize()
+
+window.addEventListener("resize", ->
+  Papaya.updateCreatedWordsDivSize()
+, false)
+
+if Papaya.onPhonegap()
   document.addEventListener("deviceready", ->
     Papaya.recorder = new RecordAudio()
   , false)
 else
   Papaya.recorder = new RecordAudio()
+
