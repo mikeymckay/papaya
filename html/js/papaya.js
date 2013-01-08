@@ -98,7 +98,6 @@ RecordAudio = (function() {
     this.filename = "recording.wav";
     if (Papaya.onPhonegap()) {
       this.recordedSound = new Media(this.filename);
-      console.log("created recordedSound");
     } else {
       Recorder.initialize({
         swfSrc: "js/recorder.swf"
@@ -141,7 +140,7 @@ $(document).on("change", "#availablePhonemes", Papaya.updatePhonemes);
 clickortouch = Papaya.onPhonegap() ? "touchend" : "click";
 
 $(document).on(clickortouch, ".phoneme-button", function(event) {
-  var createdWords, filename, phoneme, phonemePressed;
+  var createdWords, filename, phoneme, phonemePressed, _ref;
   switch (Backbone.history.fragment) {
     case "joinPhonemes":
       phonemePressed = $(event.target).text();
@@ -166,8 +165,13 @@ $(document).on(clickortouch, ".phoneme-button", function(event) {
       $("#listen-status").html(phoneme);
       filename = "" + ($("#voice-selector span.selected").text().toLowerCase()) + "_" + phoneme + ".mp3";
       if (Papaya.onPhonegap()) {
-        return (new Media("/android_asset/www/sounds/" + filename)).play();
+        if ((_ref = Papaya.media) != null) {
+          _ref.release();
+        }
+        Papaya.media = new Media("/android_asset/www/sounds/" + filename);
+        return Papaya.media.play();
       } else {
+        console.log("Not phonegap");
         $("#jplayer").jPlayer("setMedia", {
           mp3: "sounds/" + filename
         });
@@ -179,9 +183,11 @@ $(document).on(clickortouch, ".phoneme-button", function(event) {
 $("#record-start-stop").click(function() {
   $("#recordingMessage").show();
   if ($("#record-start-stop").html() === "record my voice") {
+    $("#record-start-stop").addClass("recording");
     $("#record-start-stop").html("stop recording");
     return Papaya.recorder.record();
   } else {
+    $("#record-start-stop").removeClass("recording");
     $("#record-start-stop").html("record my voice");
     return Papaya.recorder.stop();
   }
@@ -222,6 +228,7 @@ window.addEventListener("resize", function() {
 
 if (Papaya.onPhonegap()) {
   document.addEventListener("deviceready", function() {
+    navigator.splashscreen.hide();
     return Papaya.recorder = new RecordAudio();
   }, false);
 } else {

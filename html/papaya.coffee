@@ -66,7 +66,6 @@ class RecordAudio
     @filename = "recording.wav"
     if Papaya.onPhonegap()
       @recordedSound = new Media(@filename)
-      console.log "created recordedSound"
     else
       Recorder.initialize
         swfSrc: "js/recorder.swf"
@@ -102,11 +101,9 @@ $(document).on clickortouch, ".phoneme-button", (event) ->
         $("#shift").toggleClass "shift-active"
         return
 
-
       if $("#shift").hasClass "shift-active"
         console.log "ASDAS"
         phonemePressed = phonemePressed.charAt(0).toUpperCase() + phonemePressed.slice(1)
-
 
       createdWords = $('#createdWords').text()
       $('#createdWords').html "#{createdWords}#{phonemePressed}"
@@ -118,20 +115,24 @@ $(document).on clickortouch, ".phoneme-button", (event) ->
       # Use the voice + letter to look for the mp3
       filename = "#{$("#voice-selector span.selected").text().toLowerCase()}_#{phoneme}.mp3"
       if Papaya.onPhonegap()
-        (new Media("/android_asset/www/sounds/#{filename}")).play()
+        Papaya.media?.release()
+        Papaya.media = new Media("/android_asset/www/sounds/#{filename}")
+        Papaya.media.play()
       else
+        console.log "Not phonegap"
         $("#jplayer").jPlayer("setMedia",{mp3: "sounds/#{filename}"})
         $("#jplayer").jPlayer("play")
 
 $("#record-start-stop").click ->
   $("#recordingMessage").show()
   if $("#record-start-stop").html() is "record my voice"
+    $("#record-start-stop").addClass "recording"
     $("#record-start-stop").html "stop recording"
     Papaya.recorder.record()
   else
+    $("#record-start-stop").removeClass "recording"
     $("#record-start-stop").html "record my voice"
     Papaya.recorder.stop()
-
 
 $("#record-play").click ->
   $("#recordingMessage").hide()
@@ -160,6 +161,7 @@ window.addEventListener("resize", ->
 
 if Papaya.onPhonegap()
   document.addEventListener("deviceready", ->
+    navigator.splashscreen.hide()
     Papaya.recorder = new RecordAudio()
   , false)
 else
