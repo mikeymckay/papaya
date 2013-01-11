@@ -32,6 +32,7 @@
 /var/www/papaya/android/bin/res/drawable-mdpi/ic_launcher.png \
 /var/www/papaya/android/assets/www \
 /var/www/papaya/android/assets/www/papaya.coffee \
+/var/www/papaya/android/assets/www/papaya.png \
 /var/www/papaya/android/assets/www/papaya.css \
 /var/www/papaya/android/assets/www/mic.png \
 /var/www/papaya/android/assets/www/speaker.png \

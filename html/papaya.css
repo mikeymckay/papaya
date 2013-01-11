@@ -161,3 +161,11 @@ span#record-play {
 }
 
 /* End Button */
+
+img#logo{
+  max-width: 10%;
+  max-height: 10%;
+  position: absolute;
+  right: 5px;
+  top: 5px;
+}
