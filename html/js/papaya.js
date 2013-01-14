@@ -18,13 +18,19 @@ Papaya = (function() {
     $('#phonemeSelector').html(_.map(phonemes, function(phoneme) {
       return "<span class='phoneme-button button'>" + phoneme + "</span> ";
     }).join(""));
-    return $('#phonemeSelector').append("      <span class='phoneme-button button meta'>space</span>      <span class='phoneme-button button meta'>clear</span>      <span id='shift' class='phoneme-button button meta'>shift</span>      <br/>      <br/>      <span id='record-start-stop' class='button record'>record my voice</span>      <span id='record-play' class='button record'>play my voice</span>    ");
+    return $('#phonemeSelector').append("      <span class='phoneme-button button meta'>space</span>      <span class='phoneme-button button meta'>delete</span>      <span class='phoneme-button button meta'>clear</span>      <span id='shift' class='phoneme-button button meta'>shift</span>      <br/>      <br/>      <span id='record-start-stop' class='button record'>record my voice</span>      <span id='record-play' class='button record'>play my voice</span>    ");
   };
 
   Papaya.updateCreatedWordsDivSize = function() {
+    var heightMultiplier;
+    if ($(window).width() > $(window).height()) {
+      heightMultiplier = .7;
+    } else {
+      heightMultiplier = .8;
+    }
     $('#createdWords').css({
       width: $(window).width() - 20,
-      height: $(window).height() / 2
+      height: $(window).height() * heightMultiplier
     });
     console.log("w:" + $('#createdWords').css("width"));
     return console.log("h:" + $('#createdWords').css("height"));
@@ -149,12 +155,15 @@ $(document).on(clickortouch, ".phoneme-button", function(event) {
       } else if (phonemePressed === "clear") {
         $('#createdWords').html("");
         return;
+      } else if (phonemePressed === "delete") {
+        $('#createdWords').html($('#createdWords').text().substring(0, $('#createdWords').text().length - 1));
+        $('#createdWords').boxfit();
+        return;
       } else if (phonemePressed === "shift") {
         $("#shift").toggleClass("shift-active");
         return;
       }
       if ($("#shift").hasClass("shift-active")) {
-        console.log("ASDAS");
         phonemePressed = phonemePressed.charAt(0).toUpperCase() + phonemePressed.slice(1);
       }
       createdWords = $('#createdWords').text();

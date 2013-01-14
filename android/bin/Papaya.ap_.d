@@ -50,7 +50,6 @@
 /var/www/papaya/android/assets/www/sounds/male_d.mp3 \
 /var/www/papaya/android/assets/www/sounds/male_z.mp3 \
 /var/www/papaya/android/assets/www/sounds/female_gh.mp3 \
-/var/www/papaya/android/assets/www/sounds/male_z2.mp3 \
 /var/www/papaya/android/assets/www/sounds/sandra_b.mp3 \
 /var/www/papaya/android/assets/www/sounds/child_o.mp3 \
 /var/www/papaya/android/assets/www/sounds/child_ng.mp3 \
@@ -139,7 +138,6 @@
 /var/www/papaya/android/assets/www/sounds/sandra_o.mp3 \
 /var/www/papaya/android/assets/www/sounds/sandra_s.mp3 \
 /var/www/papaya/android/assets/www/sounds/sandra_ny.mp3 \
-/var/www/papaya/android/assets/www/sounds/male_ng2.mp3 \
 /var/www/papaya/android/assets/www/sounds/female_i.mp3 \
 /var/www/papaya/android/assets/www/sounds/sandra_a.mp3 \
 /var/www/papaya/android/assets/www/sounds/sandra_h.mp3 \
@@ -147,7 +145,6 @@
 /var/www/papaya/android/assets/www/sounds/child_h.mp3 \
 /var/www/papaya/android/assets/www/sounds/female_n.mp3 \
 /var/www/papaya/android/assets/www/sounds/male_v.mp3 \
-/var/www/papaya/android/assets/www/sounds/male_g2.mp3 \
 /var/www/papaya/android/assets/www/sounds/male_k.mp3 \
 /var/www/papaya/android/assets/www/sounds/female_d.mp3 \
 /var/www/papaya/android/assets/www/sounds/female_ng'.mp3 \

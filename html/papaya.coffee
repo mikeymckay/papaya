@@ -9,6 +9,7 @@ class Papaya
     ).join("")
     $('#phonemeSelector').append "
       <span class='phoneme-button button meta'>space</span>
+      <span class='phoneme-button button meta'>delete</span>
       <span class='phoneme-button button meta'>clear</span>
       <span id='shift' class='phoneme-button button meta'>shift</span>
       <br/>
@@ -18,9 +19,14 @@ class Papaya
     "
 
   @updateCreatedWordsDivSize = ->
+    if $(window).width() > $(window).height()
+      heightMultiplier = .7
+    else
+      heightMultiplier = .8
+
     $('#createdWords').css
       width: $(window).width()-20
-      height: $(window).height()/2
+      height: $(window).height()*heightMultiplier
     console.log "w:"+ $('#createdWords').css("width")
     console.log "h:"+ $('#createdWords').css("height")
 
@@ -97,12 +103,15 @@ $(document).on clickortouch, ".phoneme-button", (event) ->
       else if phonemePressed is "clear"
         $('#createdWords').html ""
         return
+      else if phonemePressed is "delete"
+        $('#createdWords').html( $('#createdWords').text().substring(0,$('#createdWords').text().length-1) )
+        $('#createdWords').boxfit()
+        return
       else if phonemePressed is "shift"
         $("#shift").toggleClass "shift-active"
         return
 
       if $("#shift").hasClass "shift-active"
-        console.log "ASDAS"
         phonemePressed = phonemePressed.charAt(0).toUpperCase() + phonemePressed.slice(1)
 
       createdWords = $('#createdWords').text()
