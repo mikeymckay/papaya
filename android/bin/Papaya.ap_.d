@@ -31,6 +31,7 @@
 /var/www/papaya/android/bin/res/drawable-mdpi/splash.png \
 /var/www/papaya/android/bin/res/drawable-mdpi/ic_launcher.png \
 /var/www/papaya/android/assets/www \
+/var/www/papaya/android/assets/www/andika.ttf \
 /var/www/papaya/android/assets/www/papaya.coffee \
 /var/www/papaya/android/assets/www/papaya.png \
 /var/www/papaya/android/assets/www/papaya.css \
