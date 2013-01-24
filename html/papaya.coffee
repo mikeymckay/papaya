@@ -12,7 +12,10 @@ class Papaya
       <span class='phoneme-button button meta'>delete</span>
       <span class='phoneme-button button meta'>clear</span>
       <span id='shift' class='phoneme-button button meta'>shift</span>
+      <!--
+      This works but removed in case of confusion
       <span id='playSounds' class='phoneme-button button meta'>play</span>
+      -->
       <br/>
       <br/>
       <span id='record-start-stop' class='button record'>record my voice</span>
@@ -60,7 +63,7 @@ class Router extends Backbone.Router
     $("#english").removeClass "selected"
     $("#kiswhahili").addClass "selected"
     $("#voice-child").show()
-    $('#availablePhonemes').val "m,a,u,k,t,l,n,o,w,e,i,h,s,b,y,z,g,d,j,r,f,v,sh,ny,dh,th,ch,gh,ng',ng"
+    $('#availablePhonemes').val "m,a,u,k,t,l,n,o,w,e,i,h,s,b,y,z,g,d,j,r,p,f,v,sh,ny,dh,th,ch,gh,ng',ng"
     @updateLanguage()
 
   english: () ->
