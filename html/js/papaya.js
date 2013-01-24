@@ -18,15 +18,31 @@ Papaya = (function() {
     $('#phonemeSelector').html(_.map(phonemes, function(phoneme) {
       return "<span class='phoneme-button button'>" + phoneme + "</span> ";
     }).join(""));
-    return $('#phonemeSelector').append("      <span class='phoneme-button button meta'>space</span>      <span class='phoneme-button button meta'>delete</span>      <span class='phoneme-button button meta'>clear</span>      <span id='shift' class='phoneme-button button meta'>shift</span>      <!--      This works but removed in case of confusion      <span id='playSounds' class='phoneme-button button meta'>play</span>      -->      <br/>      <br/>      <span id='record-start-stop' class='button record'>record my voice</span>      <span id='record-play' class='button record'>play my voice</span>    ");
+    $('#phonemeSelector').append("      <span class='phoneme-button button meta'>space</span>      <span class='phoneme-button button meta'>delete</span>      <span class='phoneme-button button meta'>clear</span>      <span id='shift' class='phoneme-button button meta'>shift</span>      <!--      This works but removed in case of confusion      <span id='playSounds' class='phoneme-button button meta'>play</span>      -->      <br/>      <br/>      <span id='record-start-stop' class='button record'>record my voice</span>      <span id='record-play' class='button record'>play my voice</span>    ");
+    $("#record-start-stop").click(function() {
+      $("#recordingMessage").show();
+      if ($("#record-start-stop").html() === "record my voice") {
+        $("#record-start-stop").addClass("recording");
+        $("#record-start-stop").html("stop recording");
+        return Papaya.recorder.record();
+      } else {
+        $("#record-start-stop").removeClass("recording");
+        $("#record-start-stop").html("record my voice");
+        return Papaya.recorder.stop();
+      }
+    });
+    return $("#record-play").click(function() {
+      $("#recordingMessage").hide();
+      return Papaya.recorder.play();
+    });
   };
 
   Papaya.updateCreatedWordsDivSize = function() {
     var heightMultiplier;
     if ($(window).width() > $(window).height()) {
-      heightMultiplier = .7;
+      heightMultiplier = .6;
     } else {
-      heightMultiplier = .8;
+      heightMultiplier = .7;
     }
     $('#createdWords').css({
       width: $(window).width() - 20,
@@ -52,6 +68,22 @@ Papaya = (function() {
       });
       return $("#jplayer").jPlayer("play");
     }
+  };
+
+  Papaya.kiswhahili = function() {
+    $("#english").removeClass("selected");
+    $("#kiswhahili").addClass("selected");
+    $("#voice-child").show();
+    return $('#availablePhonemes').val("m,a,u,k,t,l,n,o,w,e,i,h,s,b,y,z,g,d,j,r,p,f,v,sh,ny,dh,th,ch,gh,ng',ng");
+  };
+
+  Papaya.english = function() {
+    $("#english").addClass("selected");
+    $("#kiswhahili").removeClass("selected");
+    $("#voice-child").hide();
+    $('#availablePhonemes').val("a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z");
+    $("span.voice").removeClass("selected");
+    return $("#voice-female").addClass("selected");
   };
 
   return Papaya;
@@ -86,18 +118,12 @@ Router = (function(_super) {
   };
 
   Router.prototype.kiswhahili = function() {
-    $("#english").removeClass("selected");
-    $("#kiswhahili").addClass("selected");
-    $("#voice-child").show();
-    $('#availablePhonemes').val("m,a,u,k,t,l,n,o,w,e,i,h,s,b,y,z,g,d,j,r,p,f,v,sh,ny,dh,th,ch,gh,ng',ng");
+    Papaya.kiswhahili();
     return this.updateLanguage();
   };
 
   Router.prototype.english = function() {
-    $("#english").addClass("selected");
-    $("#kiswhahili").removeClass("selected");
-    $("#voice-child").hide();
-    $('#availablePhonemes').val("a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z");
+    Papaya.english();
     return this.updateLanguage();
   };
 
@@ -185,6 +211,8 @@ RecordAudio = (function() {
 
 })();
 
+Papaya.kiswhahili();
+
 Papaya.updatePhonemes();
 
 $(document).on("change", "#availablePhonemes", Papaya.updatePhonemes);
@@ -239,24 +267,6 @@ $(document).on(clickortouch, ".phoneme-button", function(event) {
       filename = "" + ($("#voice-selector span.selected").text().toLowerCase()) + "_" + phoneme + ".mp3";
       return Papaya.play(filename);
   }
-});
-
-$("#record-start-stop").click(function() {
-  $("#recordingMessage").show();
-  if ($("#record-start-stop").html() === "record my voice") {
-    $("#record-start-stop").addClass("recording");
-    $("#record-start-stop").html("stop recording");
-    return Papaya.recorder.record();
-  } else {
-    $("#record-start-stop").removeClass("recording");
-    $("#record-start-stop").html("record my voice");
-    return Papaya.recorder.stop();
-  }
-});
-
-$("#record-play").click(function() {
-  $("#recordingMessage").hide();
-  return Papaya.recorder.play();
 });
 
 $("#voice-selector span").click(function(event) {

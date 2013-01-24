@@ -101,6 +101,7 @@
 /var/www/papaya/android/assets/www/sounds/Kiswahili/male_w.mp3 \
 /var/www/papaya/android/assets/www/sounds/Kiswahili/child_t.mp3 \
 /var/www/papaya/android/assets/www/sounds/Kiswahili/female_dh.mp3 \
+/var/www/papaya/android/assets/www/sounds/Kiswahili/child_p.mp3 \
 /var/www/papaya/android/assets/www/sounds/Kiswahili/child_ng'.mp3 \
 /var/www/papaya/android/assets/www/sounds/Kiswahili/male_d.mp3 \
 /var/www/papaya/android/assets/www/sounds/Kiswahili/male_z.mp3 \

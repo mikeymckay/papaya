@@ -22,11 +22,26 @@ class Papaya
       <span id='record-play' class='button record'>play my voice</span>
     "
 
+    $("#record-start-stop").click ->
+      $("#recordingMessage").show()
+      if $("#record-start-stop").html() is "record my voice"
+        $("#record-start-stop").addClass "recording"
+        $("#record-start-stop").html "stop recording"
+        Papaya.recorder.record()
+      else
+        $("#record-start-stop").removeClass "recording"
+        $("#record-start-stop").html "record my voice"
+        Papaya.recorder.stop()
+
+    $("#record-play").click ->
+      $("#recordingMessage").hide()
+      Papaya.recorder.play()
+
   @updateCreatedWordsDivSize = ->
     if $(window).width() > $(window).height()
-      heightMultiplier = .7
+      heightMultiplier = .6
     else
-      heightMultiplier = .8
+      heightMultiplier = .7
 
     $('#createdWords').css
       width: $(window).width()-20
@@ -45,6 +60,21 @@ class Papaya
     else
       $("#jplayer").jPlayer("setMedia",{mp3: "sounds/#{$("a.language.selected").text()}/#{filename}"})
       $("#jplayer").jPlayer("play")
+  
+  @kiswhahili: () ->
+    $("#english").removeClass "selected"
+    $("#kiswhahili").addClass "selected"
+    $("#voice-child").show()
+    $('#availablePhonemes').val "m,a,u,k,t,l,n,o,w,e,i,h,s,b,y,z,g,d,j,r,p,f,v,sh,ny,dh,th,ch,gh,ng',ng"
+
+  @english: () ->
+    $("#english").addClass "selected"
+    $("#kiswhahili").removeClass "selected"
+    $("#voice-child").hide()
+    $('#availablePhonemes').val "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z"
+    $("span.voice").removeClass "selected"
+    $("#voice-female").addClass "selected"
+
 
 class Router extends Backbone.Router
   routes:
@@ -65,17 +95,11 @@ class Router extends Backbone.Router
     $("#voice-selector").hide()
 
   kiswhahili: () ->
-    $("#english").removeClass "selected"
-    $("#kiswhahili").addClass "selected"
-    $("#voice-child").show()
-    $('#availablePhonemes').val "m,a,u,k,t,l,n,o,w,e,i,h,s,b,y,z,g,d,j,r,p,f,v,sh,ny,dh,th,ch,gh,ng',ng"
+    Papaya.kiswhahili()
     @updateLanguage()
 
   english: () ->
-    $("#english").addClass "selected"
-    $("#kiswhahili").removeClass "selected"
-    $("#voice-child").hide()
-    $('#availablePhonemes').val "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z"
+    Papaya.english()
     @updateLanguage()
 
   default: () ->
@@ -127,6 +151,7 @@ class RecordAudio
     #  Have to create a new Media object otherwise: Error calling method on NPObject
     if Papaya.onPhonegap() then (new Media(@filename)).play() else Recorder.play()
 
+Papaya.kiswhahili()
 Papaya.updatePhonemes()
 
 # events
@@ -182,20 +207,6 @@ $(document).on clickortouch, ".phoneme-button", (event) ->
       filename = "#{$("#voice-selector span.selected").text().toLowerCase()}_#{phoneme}.mp3"
       Papaya.play(filename)
 
-$("#record-start-stop").click ->
-  $("#recordingMessage").show()
-  if $("#record-start-stop").html() is "record my voice"
-    $("#record-start-stop").addClass "recording"
-    $("#record-start-stop").html "stop recording"
-    Papaya.recorder.record()
-  else
-    $("#record-start-stop").removeClass "recording"
-    $("#record-start-stop").html "record my voice"
-    Papaya.recorder.stop()
-
-$("#record-play").click ->
-  $("#recordingMessage").hide()
-  Papaya.recorder.play()
 
 $("#voice-selector span").click (event) ->
   $(event.target).siblings().removeClass "selected"
