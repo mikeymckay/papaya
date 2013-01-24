@@ -18,7 +18,7 @@ Papaya = (function() {
     $('#phonemeSelector').html(_.map(phonemes, function(phoneme) {
       return "<span class='phoneme-button button'>" + phoneme + "</span> ";
     }).join(""));
-    return $('#phonemeSelector').append("      <span class='phoneme-button button meta'>space</span>      <span class='phoneme-button button meta'>delete</span>      <span class='phoneme-button button meta'>clear</span>      <span id='shift' class='phoneme-button button meta'>shift</span>      <br/>      <br/>      <span id='record-start-stop' class='button record'>record my voice</span>      <span id='record-play' class='button record'>play my voice</span>    ");
+    return $('#phonemeSelector').append("      <span class='phoneme-button button meta'>space</span>      <span class='phoneme-button button meta'>delete</span>      <span class='phoneme-button button meta'>clear</span>      <span id='shift' class='phoneme-button button meta'>shift</span>      <span id='playSounds' class='phoneme-button button meta'>play</span>      <br/>      <br/>      <span id='record-start-stop' class='button record'>record my voice</span>      <span id='record-play' class='button record'>play my voice</span>    ");
   };
 
   Papaya.updateCreatedWordsDivSize = function() {
@@ -28,12 +28,26 @@ Papaya = (function() {
     } else {
       heightMultiplier = .8;
     }
-    $('#createdWords').css({
+    return $('#createdWords').css({
       width: $(window).width() - 20,
       height: $(window).height() * heightMultiplier
     });
-    console.log("w:" + $('#createdWords').css("width"));
-    return console.log("h:" + $('#createdWords').css("height"));
+  };
+
+  Papaya.play = function(filename) {
+    var _ref;
+    if (Papaya.onPhonegap()) {
+      if ((_ref = Papaya.media) != null) {
+        _ref.release();
+      }
+      Papaya.media = new Media("/android_asset/www/sounds/" + ($("a.language.selected").text()) + "/" + filename);
+      return Papaya.media.play();
+    } else {
+      $("#jplayer").jPlayer("setMedia", {
+        mp3: "sounds/" + ($("a.language.selected").text()) + "/" + filename
+      });
+      return $("#jplayer").jPlayer("play");
+    }
   };
 
   return Papaya;
@@ -52,7 +66,35 @@ Router = (function(_super) {
     "": "default",
     "joinPhonemes": "joinPhonemes",
     "availablePhonemes": "availablePhonemes",
-    "listenPhonemes": "listenPhonemes"
+    "listenPhonemes": "listenPhonemes",
+    "kiswhahili": "kiswhahili",
+    "english": "english"
+  };
+
+  Router.prototype.updateLanguage = function() {
+    Papaya.updatePhonemes();
+    $(".phoneme-selector").hide();
+    $(".created-words").hide();
+    $("span.meta").hide();
+    $(".listen-phonemes").hide();
+    $("span.record").hide();
+    return $("#voice-selector").hide();
+  };
+
+  Router.prototype.kiswhahili = function() {
+    $("#english").removeClass("selected");
+    $("#kiswhahili").addClass("selected");
+    $("#voice-child").show();
+    $('#availablePhonemes').val("m,a,u,k,t,l,n,o,w,e,i,h,s,b,y,z,g,d,j,r,f,v,sh,ny,dh,th,ch,gh,ng',ng");
+    return this.updateLanguage();
+  };
+
+  Router.prototype.english = function() {
+    $("#english").addClass("selected");
+    $("#kiswhahili").removeClass("selected");
+    $("#voice-child").hide();
+    $('#availablePhonemes').val("a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z");
+    return this.updateLanguage();
   };
 
   Router.prototype["default"] = function() {
@@ -146,7 +188,7 @@ $(document).on("change", "#availablePhonemes", Papaya.updatePhonemes);
 clickortouch = Papaya.onPhonegap() ? "touchend" : "click";
 
 $(document).on(clickortouch, ".phoneme-button", function(event) {
-  var createdWords, filename, phoneme, phonemePressed, _ref;
+  var availablePhonemes, createdWord, createdWords, delay, endPosition, filename, phoneme, phonemePressed, startPosition;
   switch (Backbone.history.fragment) {
     case "joinPhonemes":
       phonemePressed = $(event.target).text();
@@ -162,6 +204,24 @@ $(document).on(clickortouch, ".phoneme-button", function(event) {
       } else if (phonemePressed === "shift") {
         $("#shift").toggleClass("shift-active");
         return;
+      } else if (phonemePressed === "play") {
+        availablePhonemes = $('#availablePhonemes').val().split(/, */);
+        createdWord = $('#createdWords').text();
+        delay = 0;
+        startPosition = 0;
+        endPosition = createdWord.length;
+        while (startPosition !== endPosition) {
+          phoneme = createdWord.substring(startPosition, endPosition);
+          if (_.contains(availablePhonemes, phoneme)) {
+            startPosition = endPosition;
+            endPosition = createdWord.length;
+            _.delay(Papaya.play, delay, "female_" + phoneme + ".mp3");
+            delay += 1500;
+          } else {
+            endPosition = endPosition - 1;
+          }
+        }
+        return;
       }
       if ($("#shift").hasClass("shift-active")) {
         phonemePressed = phonemePressed.charAt(0).toUpperCase() + phonemePressed.slice(1);
@@ -173,19 +233,7 @@ $(document).on(clickortouch, ".phoneme-button", function(event) {
       phoneme = $(event.target).text();
       $("#listen-status").html(phoneme);
       filename = "" + ($("#voice-selector span.selected").text().toLowerCase()) + "_" + phoneme + ".mp3";
-      if (Papaya.onPhonegap()) {
-        if ((_ref = Papaya.media) != null) {
-          _ref.release();
-        }
-        Papaya.media = new Media("/android_asset/www/sounds/" + filename);
-        return Papaya.media.play();
-      } else {
-        console.log("Not phonegap");
-        $("#jplayer").jPlayer("setMedia", {
-          mp3: "sounds/" + filename
-        });
-        return $("#jplayer").jPlayer("play");
-      }
+      return Papaya.play(filename);
   }
 });
 

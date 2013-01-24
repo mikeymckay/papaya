@@ -12,6 +12,7 @@ class Papaya
       <span class='phoneme-button button meta'>delete</span>
       <span class='phoneme-button button meta'>clear</span>
       <span id='shift' class='phoneme-button button meta'>shift</span>
+      <span id='playSounds' class='phoneme-button button meta'>play</span>
       <br/>
       <br/>
       <span id='record-start-stop' class='button record'>record my voice</span>
@@ -27,8 +28,15 @@ class Papaya
     $('#createdWords').css
       width: $(window).width()-20
       height: $(window).height()*heightMultiplier
-    console.log "w:"+ $('#createdWords').css("width")
-    console.log "h:"+ $('#createdWords').css("height")
+
+  @play = (filename) ->
+    if Papaya.onPhonegap()
+      Papaya.media?.release()
+      Papaya.media = new Media("/android_asset/www/sounds/#{$("a.language.selected").text()}/#{filename}")
+      Papaya.media.play()
+    else
+      $("#jplayer").jPlayer("setMedia",{mp3: "sounds/#{$("a.language.selected").text()}/#{filename}"})
+      $("#jplayer").jPlayer("play")
 
 class Router extends Backbone.Router
   routes:
@@ -36,6 +44,31 @@ class Router extends Backbone.Router
     "joinPhonemes": "joinPhonemes"
     "availablePhonemes": "availablePhonemes"
     "listenPhonemes": "listenPhonemes"
+    "kiswhahili": "kiswhahili"
+    "english": "english"
+
+  updateLanguage: () ->
+    Papaya.updatePhonemes()
+    $(".phoneme-selector").hide()
+    $(".created-words").hide()
+    $("span.meta").hide()
+    $(".listen-phonemes").hide()
+    $("span.record").hide()
+    $("#voice-selector").hide()
+
+  kiswhahili: () ->
+    $("#english").removeClass "selected"
+    $("#kiswhahili").addClass "selected"
+    $("#voice-child").show()
+    $('#availablePhonemes').val "m,a,u,k,t,l,n,o,w,e,i,h,s,b,y,z,g,d,j,r,f,v,sh,ny,dh,th,ch,gh,ng',ng"
+    @updateLanguage()
+
+  english: () ->
+    $("#english").addClass "selected"
+    $("#kiswhahili").removeClass "selected"
+    $("#voice-child").hide()
+    $('#availablePhonemes').val "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z"
+    @updateLanguage()
 
   default: () ->
     $("#content>div").hide()
@@ -110,6 +143,22 @@ $(document).on clickortouch, ".phoneme-button", (event) ->
       else if phonemePressed is "shift"
         $("#shift").toggleClass "shift-active"
         return
+      else if phonemePressed is "play"
+        availablePhonemes = $('#availablePhonemes').val().split(/, */)
+        createdWord = $('#createdWords').text()
+        delay = 0
+        startPosition = 0
+        endPosition = createdWord.length
+        while startPosition != endPosition
+          phoneme = createdWord.substring(startPosition,endPosition)
+          if _.contains(availablePhonemes,phoneme)
+            startPosition = endPosition
+            endPosition = createdWord.length
+            _.delay(Papaya.play, delay, "female_#{phoneme}.mp3")
+            delay += 1500
+          else
+            endPosition = endPosition - 1
+        return
 
       if $("#shift").hasClass "shift-active"
         phonemePressed = phonemePressed.charAt(0).toUpperCase() + phonemePressed.slice(1)
@@ -123,14 +172,7 @@ $(document).on clickortouch, ".phoneme-button", (event) ->
 
       # Use the voice + letter to look for the mp3
       filename = "#{$("#voice-selector span.selected").text().toLowerCase()}_#{phoneme}.mp3"
-      if Papaya.onPhonegap()
-        Papaya.media?.release()
-        Papaya.media = new Media("/android_asset/www/sounds/#{filename}")
-        Papaya.media.play()
-      else
-        console.log "Not phonegap"
-        $("#jplayer").jPlayer("setMedia",{mp3: "sounds/#{filename}"})
-        $("#jplayer").jPlayer("play")
+      Papaya.play(filename)
 
 $("#record-start-stop").click ->
   $("#recordingMessage").show()

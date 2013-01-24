@@ -41,6 +41,16 @@
     text-decoration: none;
     color: #ff7264;
   }
+  #navigation a.language{
+    font-size: 1em;
+  }
+  #navigation a.selected{
+    background-color: #ff7264;
+  }
+  #navigation a.selected:hover {
+    color: #99ca20;
+  }
+
 /* Here ends top navigation */
 
   #listen-status{
@@ -175,3 +185,4 @@ img#logo{
   right: 5px;
   top: 5px;
 }
+
