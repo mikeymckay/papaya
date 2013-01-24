@@ -32,6 +32,11 @@ class Papaya
       width: $(window).width()-20
       height: $(window).height()*heightMultiplier
 
+    $('#createdWords').html $('#createdWords').text()
+    $('#createdWords').boxfit()
+
+  @boxfit = ->
+
   @play = (filename) ->
     if Papaya.onPhonegap()
       Papaya.media?.release()

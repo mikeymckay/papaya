@@ -28,11 +28,15 @@ Papaya = (function() {
     } else {
       heightMultiplier = .8;
     }
-    return $('#createdWords').css({
+    $('#createdWords').css({
       width: $(window).width() - 20,
       height: $(window).height() * heightMultiplier
     });
+    $('#createdWords').html($('#createdWords').text());
+    return $('#createdWords').boxfit();
   };
+
+  Papaya.boxfit = function() {};
 
   Papaya.play = function(filename) {
     var _ref;
