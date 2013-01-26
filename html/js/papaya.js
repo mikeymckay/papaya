@@ -20,19 +20,13 @@ Papaya = (function() {
     }).join(""));
     $('#phonemeSelector').append("      <span class='phoneme-button button meta'>space</span>      <span class='phoneme-button button meta'>delete</span>      <span class='phoneme-button button meta'>clear</span>      <span id='shift' class='phoneme-button button meta'>shift</span>      <!--      This works but removed in case of confusion      <span id='playSounds' class='phoneme-button button meta'>play</span>      -->      <br/>      <br/>      <span id='record-start-stop' class='button record'>record my voice</span>      <span id='record-play' class='button record'>play my voice</span>    ");
     $("#record-start-stop").click(function() {
-      $("#recordingMessage").show();
       if ($("#record-start-stop").html() === "record my voice") {
-        $("#record-start-stop").addClass("recording");
-        $("#record-start-stop").html("stop recording");
-        return Papaya.recorder.record();
+        return Papaya.record();
       } else {
-        $("#record-start-stop").removeClass("recording");
-        $("#record-start-stop").html("record my voice");
-        return Papaya.recorder.stop();
+        return Papaya.stop();
       }
     });
     return $("#record-play").click(function() {
-      $("#recordingMessage").hide();
       return Papaya.recorder.play();
     });
   };
@@ -52,15 +46,18 @@ Papaya = (function() {
     return $('#createdWords').boxfit();
   };
 
-  Papaya.boxfit = function() {};
-
-  Papaya.play = function(filename) {
+  Papaya.play = function(filename, button) {
     var _ref;
     if (Papaya.onPhonegap()) {
       if ((_ref = Papaya.media) != null) {
         _ref.release();
       }
-      Papaya.media = new Media("/android_asset/www/sounds/" + ($("a.language.selected").text()) + "/" + filename);
+      button.addClass("playing");
+      console.log(button);
+      Papaya.media = new Media("/android_asset/www/sounds/" + ($("a.language.selected").text()) + "/" + filename, function() {
+        button.removeClass("playing");
+        return console.log(button);
+      });
       return Papaya.media.play();
     } else {
       $("#jplayer").jPlayer("setMedia", {
@@ -84,6 +81,20 @@ Papaya = (function() {
     $('#availablePhonemes').val("a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z");
     $("span.voice").removeClass("selected");
     return $("#voice-female").addClass("selected");
+  };
+
+  Papaya.record = function() {
+    $("#record-start-stop").addClass("recording");
+    $("#record-start-stop").html("stop recording");
+    Papaya.recorder.record();
+    return this.autoStop = _.delay(this.stop, 5000);
+  };
+
+  Papaya.stop = function() {
+    $("#record-start-stop").removeClass("recording");
+    $("#record-start-stop").html("record my voice");
+    Papaya.recorder.stop();
+    return clearTimeout(this.autoStop);
   };
 
   return Papaya;
@@ -200,11 +211,16 @@ RecordAudio = (function() {
   };
 
   RecordAudio.prototype.play = function() {
+    var media;
+    media = new Media(this.filename, function() {
+      return $("#record-play").removeClass("playing");
+    });
     if (Papaya.onPhonegap()) {
-      return (new Media(this.filename)).play();
+      media.play();
     } else {
-      return Recorder.play();
+      Recorder.play();
     }
+    return $("#record-play").addClass("playing");
   };
 
   return RecordAudio;
@@ -220,7 +236,7 @@ $(document).on("change", "#availablePhonemes", Papaya.updatePhonemes);
 clickortouch = Papaya.onPhonegap() ? "touchend" : "click";
 
 $(document).on(clickortouch, ".phoneme-button", function(event) {
-  var availablePhonemes, createdWord, createdWords, delay, endPosition, filename, phoneme, phonemePressed, startPosition;
+  var availablePhonemes, button, createdWord, createdWords, delay, endPosition, filename, phoneme, phonemePressed, startPosition;
   switch (Backbone.history.fragment) {
     case "joinPhonemes":
       phonemePressed = $(event.target).text();
@@ -262,10 +278,11 @@ $(document).on(clickortouch, ".phoneme-button", function(event) {
       $('#createdWords').html("" + createdWords + phonemePressed);
       return $('#createdWords').boxfit();
     case "listenPhonemes":
-      phoneme = $(event.target).text();
+      button = $(event.target);
+      phoneme = button.text();
       $("#listen-status").html(phoneme);
       filename = "" + ($("#voice-selector span.selected").text().toLowerCase()) + "_" + phoneme + ".mp3";
-      return Papaya.play(filename);
+      return Papaya.play(filename, button);
   }
 });
 

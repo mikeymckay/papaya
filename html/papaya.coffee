@@ -23,18 +23,12 @@ class Papaya
     "
 
     $("#record-start-stop").click ->
-      $("#recordingMessage").show()
       if $("#record-start-stop").html() is "record my voice"
-        $("#record-start-stop").addClass "recording"
-        $("#record-start-stop").html "stop recording"
-        Papaya.recorder.record()
+        Papaya.record()
       else
-        $("#record-start-stop").removeClass "recording"
-        $("#record-start-stop").html "record my voice"
-        Papaya.recorder.stop()
+        Papaya.stop()
 
     $("#record-play").click ->
-      $("#recordingMessage").hide()
       Papaya.recorder.play()
 
   @updateCreatedWordsDivSize = ->
@@ -50,12 +44,14 @@ class Papaya
     $('#createdWords').html $('#createdWords').text()
     $('#createdWords').boxfit()
 
-  @boxfit = ->
-
-  @play = (filename) ->
+  @play = (filename,button) ->
     if Papaya.onPhonegap()
       Papaya.media?.release()
-      Papaya.media = new Media("/android_asset/www/sounds/#{$("a.language.selected").text()}/#{filename}")
+      button.addClass("playing")
+      console.log button
+      Papaya.media = new Media "/android_asset/www/sounds/#{$("a.language.selected").text()}/#{filename}", ->
+        button.removeClass("playing")
+        console.log button
       Papaya.media.play()
     else
       $("#jplayer").jPlayer("setMedia",{mp3: "sounds/#{$("a.language.selected").text()}/#{filename}"})
@@ -75,6 +71,17 @@ class Papaya
     $("span.voice").removeClass "selected"
     $("#voice-female").addClass "selected"
 
+  @record = ->
+    $("#record-start-stop").addClass "recording"
+    $("#record-start-stop").html "stop recording"
+    Papaya.recorder.record()
+    @autoStop = _.delay(@stop, 5000)
+
+  @stop = ->
+    $("#record-start-stop").removeClass "recording"
+    $("#record-start-stop").html "record my voice"
+    Papaya.recorder.stop()
+    clearTimeout(@autoStop)
 
 class Router extends Backbone.Router
   routes:
@@ -136,7 +143,7 @@ class RecordAudio
     @status = "stopped"
     @filename = "recording.wav"
     if Papaya.onPhonegap()
-      @recordedSound = new Media(@filename)
+      @recordedSound = new Media @filename
     else
       Recorder.initialize
         swfSrc: "js/recorder.swf"
@@ -149,7 +156,11 @@ class RecordAudio
 
   play: =>
     #  Have to create a new Media object otherwise: Error calling method on NPObject
-    if Papaya.onPhonegap() then (new Media(@filename)).play() else Recorder.play()
+    media = new Media @filename, ->
+      # This is a success callback called when finished
+      $("#record-play").removeClass "playing"
+    if Papaya.onPhonegap() then media.play() else Recorder.play()
+    $("#record-play").addClass "playing"
 
 Papaya.kiswhahili()
 Papaya.updatePhonemes()
@@ -200,12 +211,13 @@ $(document).on clickortouch, ".phoneme-button", (event) ->
       $('#createdWords').html "#{createdWords}#{phonemePressed}"
       $('#createdWords').boxfit()
     when "listenPhonemes"
-      phoneme = $(event.target).text()
+      button = $(event.target)
+      phoneme = button.text()
       $("#listen-status").html phoneme
 
       # Use the voice + letter to look for the mp3
       filename = "#{$("#voice-selector span.selected").text().toLowerCase()}_#{phoneme}.mp3"
-      Papaya.play(filename)
+      Papaya.play(filename,button)
 
 
 $("#voice-selector span").click (event) ->
