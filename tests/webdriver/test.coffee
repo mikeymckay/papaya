@@ -38,6 +38,7 @@ fillElementByCss = (css,text,browser,callback) ->
       callback()
 
 clickElementByCSSWithText = (css,text,browser,callback) ->
+  console.log "$('#{css}:contains(#{text})')"
   browser.eval "$('#{css}:contains(#{text})')", (err,element) ->
     if err? or element.length is 0
       console.log "Error clicking: $('#{css}:contains(#{text})')"
@@ -74,23 +75,25 @@ passwords = require('./passwords.json')
 #browser.init browserName: "zombie", ->
 browser.init browserName: "chrome", ->
   browser.get "http://localhost:8000/papaya/html", ->
-    clickElementByCSSWithText "a","Join Letters", browser, ->
+    clickElementByCSSWithText "a", "Join Letters", browser, ->
       isTextShown "space", browser, ->
         isTextShown "dh", browser, ->
-          clickElementByCSSWithText "a","Listen to Letter Sounds", browser, ->
+          clickElementByCSSWithText "a", "Listen to Letter Sounds", browser, ->
             isTextShown "Child", browser, ->
               isTextShown "Female", browser, ->
                 isTextShown "Male", browser, ->
-                  clickElementByCSSWithText "a","English", browser, ->
+                  clickElementByCSSWithText "a", "English", browser, ->
                     isTextNotShown "Female", browser, ->
-                      clickElementByCSSWithText "a","Listen to Letter Sounds", browser, ->
+                      clickElementByCSSWithText "a", "Listen to Letter Sounds", browser, ->
                         isTextNotShown "Child", browser, ->
-                          clickElementByCSSWithText "a","Join Letters", browser, ->
+                          clickElementByCSSWithText "a", "Join Letters", browser, ->
                             isTextNotShown "dh", browser, ->
-                              clickElementByCSSWithText "a","Listen to Letter Sounds", browser, ->
-                                clickElementByCSSWithText "span","record my voice", browser, ->
-                                  isTextShown "stop recording", browser, ->
-                                    wait 5,browser, ->
-                                      isTextNotShown "stop recording", browser, ->
-                                        isTextShown "record my voice", browser, ->
+                              clickElementByCSSWithText "a", "Listen to Letter Sounds", browser, ->
+                                isTextNotShown "play my voice", browser, ->
+                                  clickElementByCSSWithText "span", "record my voice", browser, ->
+                                    isTextShown "stop recording", browser, ->
+                                      wait 5,browser, ->
+                                        isTextNotShown "stop recording", browser, ->
+                                          isTextShown "record my voice", browser, ->
+                                            isTextShown "play my voice", browser, ->
 

@@ -18,7 +18,7 @@ Papaya = (function() {
     $('#phonemeSelector').html(_.map(phonemes, function(phoneme) {
       return "<span class='phoneme-button button'>" + phoneme + "</span> ";
     }).join(""));
-    $('#phonemeSelector').append("      <span class='phoneme-button button meta'>space</span>      <span class='phoneme-button button meta'>delete</span>      <span class='phoneme-button button meta'>clear</span>      <span id='shift' class='phoneme-button button meta'>shift</span>      <!--      This works but removed in case of confusion      <span id='playSounds' class='phoneme-button button meta'>play</span>      -->      <br/>      <br/>      <span id='record-start-stop' class='button record'>record my voice</span>      <span id='record-play' class='button record'>play my voice</span>    ");
+    $('#phonemeSelector').append("      <span class='phoneme-button button meta'>space</span>      <span class='phoneme-button button meta'>delete</span>      <span class='phoneme-button button meta'>clear</span>      <span id='shift' class='phoneme-button button meta'>shift</span>      <!--      This works but removed in case of confusion      <span id='playSounds' class='phoneme-button button meta'>play</span>      -->      <br/>      <br/>      <span id='recording-buttons'>        <span id='record-start-stop' class='button record'>record my voice</span>        <span id='record-play' style='display:none' class='button record'>play my voice</span>      </span>    ");
     $("#record-start-stop").click(function() {
       if ($("#record-start-stop").html() === "record my voice") {
         return Papaya.record();
@@ -124,7 +124,7 @@ Router = (function(_super) {
     $(".created-words").hide();
     $("span.meta").hide();
     $(".listen-phonemes").hide();
-    $("span.record").hide();
+    $("#recording-buttons").hide();
     return $("#voice-selector").hide();
   };
 
@@ -157,7 +157,7 @@ Router = (function(_super) {
     $(".listen-phonemes").hide();
     $(".phoneme-selector").show();
     $(".created-words").show();
-    $("span.record").hide();
+    $("#recording-buttons").hide();
     $("span.meta").show();
     return $("#voice-selector").hide();
   };
@@ -166,7 +166,7 @@ Router = (function(_super) {
     $("#content>div").hide();
     $(".phoneme-selector").show();
     $(".listen-phonemes").show();
-    $("span.record").show();
+    $("#recording-buttons").show();
     $("span.meta").hide();
     return $("#voice-selector").show();
   };
@@ -204,19 +204,23 @@ RecordAudio = (function() {
 
   RecordAudio.prototype.stop = function() {
     if (Papaya.onPhonegap()) {
-      return this.recordedSound.stopRecord();
+      this.recordedSound.stopRecord();
     } else {
-      return Recorder.stop();
+      Recorder.stop();
     }
+    return $("#record-play").show();
   };
 
   RecordAudio.prototype.play = function() {
-    var media;
-    media = new Media(this.filename, function() {
-      return $("#record-play").removeClass("playing");
-    });
+    var _ref;
     if (Papaya.onPhonegap()) {
-      media.play();
+      if ((_ref = this.media) != null) {
+        _ref.stop();
+      }
+      this.media = new Media(this.filename, function() {
+        return $("#record-play").removeClass("playing");
+      });
+      this.media.play();
     } else {
       Recorder.play();
     }
@@ -307,6 +311,8 @@ $(document).ready(function() {
     }
   });
 });
+
+Papaya.kiswhahili();
 
 Papaya.updateCreatedWordsDivSize();
 

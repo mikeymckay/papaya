@@ -18,8 +18,10 @@ class Papaya
       -->
       <br/>
       <br/>
-      <span id='record-start-stop' class='button record'>record my voice</span>
-      <span id='record-play' class='button record'>play my voice</span>
+      <span id='recording-buttons'>
+        <span id='record-start-stop' class='button record'>record my voice</span>
+        <span id='record-play' style='display:none' class='button record'>play my voice</span>
+      </span>
     "
 
     $("#record-start-stop").click ->
@@ -98,7 +100,7 @@ class Router extends Backbone.Router
     $(".created-words").hide()
     $("span.meta").hide()
     $(".listen-phonemes").hide()
-    $("span.record").hide()
+    $("#recording-buttons").hide()
     $("#voice-selector").hide()
 
   kiswhahili: () ->
@@ -126,7 +128,7 @@ class Router extends Backbone.Router
     $(".listen-phonemes").hide()
     $(".phoneme-selector").show()
     $(".created-words").show()
-    $("span.record").hide()
+    $("#recording-buttons").hide()
     $("span.meta").show()
     $("#voice-selector").hide()
 
@@ -134,7 +136,7 @@ class Router extends Backbone.Router
     $("#content>div").hide()
     $(".phoneme-selector").show()
     $(".listen-phonemes").show()
-    $("span.record").show()
+    $("#recording-buttons").show()
     $("span.meta").hide()
     $("#voice-selector").show()
 
@@ -143,6 +145,7 @@ class RecordAudio
     @status = "stopped"
     @filename = "recording.wav"
     if Papaya.onPhonegap()
+
       @recordedSound = new Media @filename
     else
       Recorder.initialize
@@ -153,13 +156,18 @@ class RecordAudio
 
   stop: =>
     if Papaya.onPhonegap() then @recordedSound.stopRecord() else Recorder.stop()
+    $("#record-play").show()
 
   play: =>
-    #  Have to create a new Media object otherwise: Error calling method on NPObject
-    media = new Media @filename, ->
-      # This is a success callback called when finished
-      $("#record-play").removeClass "playing"
-    if Papaya.onPhonegap() then media.play() else Recorder.play()
+    if Papaya.onPhonegap()
+      @media?.stop()
+      #  Have to create a new Media object otherwise: Error calling method on NPObject
+      @media = new Media @filename, ->
+        # This is a success callback called when finished
+        $("#record-play").removeClass "playing"
+      @media.play()
+    else
+      Recorder.play()
     $("#record-play").addClass "playing"
 
 Papaya.kiswhahili()
@@ -235,6 +243,7 @@ $(document).ready () ->
         filename = "#{$("#voice-selector span.selected").text().toLowerCase()}_#{phoneme}.mp3"
         $("#listen-status").append "<br><span style='font-size:20px'>No sound file available (#{filename})</span>"
 
+Papaya.kiswhahili()
 Papaya.updateCreatedWordsDivSize()
 
 window.addEventListener("resize", ->
