@@ -77,7 +77,7 @@ class Papaya
     $("#record-start-stop").addClass "recording"
     $("#record-start-stop").html "stop recording"
     Papaya.recorder.record()
-    @autoStop = _.delay(@stop, 5000)
+    @autoStop = _.delay(@stop, 15000)
 
   @stop = ->
     $("#record-start-stop").removeClass "recording"
@@ -226,6 +226,10 @@ $(document).on clickortouch, ".phoneme-button", (event) ->
       # Use the voice + letter to look for the mp3
       filename = "#{$("#voice-selector span.selected").text().toLowerCase()}_#{phoneme}.mp3"
       Papaya.play(filename,button)
+      _.delay ->
+        $("#listen-status").html ""
+      , 1000
+
 
 
 $("#voice-selector span").click (event) ->
