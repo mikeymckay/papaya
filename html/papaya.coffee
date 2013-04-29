@@ -1,4 +1,7 @@
+maxRecordTime = 15000
+
 class Papaya
+
   @onPhonegap = ->
     document.URL.indexOf( 'http://' ) is -1 && document.URL.indexOf( 'https://' ) is -1
 
@@ -31,7 +34,16 @@ class Papaya
         Papaya.stop()
 
     $("#record-play").click ->
-      Papaya.recorder.play()
+      if $("#record-play").html() is "play my voice"
+        $("#record-play").html "stop playing my voice"
+        Papaya.recorder.play
+          done: ->
+            console.log "DONE"
+            $("#record-play").removeClass "playing"
+            $("#record-play").html "play my voice"
+      else
+        $("#record-play").html "play my voice"
+        Papaya.recorder.stop()
 
   @updateCreatedWordsDivSize = ->
     if $(window).width() > $(window).height()
@@ -77,7 +89,7 @@ class Papaya
     $("#record-start-stop").addClass "recording"
     $("#record-start-stop").html "stop recording"
     Papaya.recorder.record()
-    @autoStop = _.delay(@stop, 15000)
+    @autoStop = _.delay(@stop, maxRecordTime)
 
   @stop = ->
     $("#record-start-stop").removeClass "recording"
@@ -158,16 +170,18 @@ class RecordAudio
     if Papaya.onPhonegap() then @recordedSound.stopRecord() else Recorder.stop()
     $("#record-play").show()
 
-  play: =>
+  play: (options) =>
     if Papaya.onPhonegap()
       @media?.stop()
       #  Have to create a new Media object otherwise: Error calling method on NPObject
       @media = new Media @filename, ->
         # This is a success callback called when finished
-        $("#record-play").removeClass "playing"
+        options.done()
       @media.play()
     else
-      Recorder.play()
+      Recorder.play
+        finished: options.done
+
     $("#record-play").addClass "playing"
 
 Papaya.kiswhahili()
