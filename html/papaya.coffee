@@ -5,6 +5,7 @@ _.mixin(_.str.exports())
 
 class Papaya
 
+
   @onPhonegap = ->
     document.URL.indexOf( 'http://' ) is -1 && document.URL.indexOf( 'https://' ) is -1
 
@@ -73,20 +74,6 @@ class Papaya
     else
       $("#jplayer").jPlayer("setMedia",{mp3: "sounds/#{$("a.language.selected").text()}/#{filename}"})
       $("#jplayer").jPlayer("play")
-  
-  @kiswhahili: () ->
-    $("#english").removeClass "selected"
-    $("#kiswhahili").addClass "selected"
-    $("#voice-child").show()
-    $('#availablePhonemes').val "m,a,u,k,t,l,n,o,w,e,i,h,s,b,y,z,g,d,j,r,p,f,v,sh,ny,dh,th,ch,gh,ng',ng"
-
-  @english: () ->
-    $("#english").addClass "selected"
-    $("#kiswhahili").removeClass "selected"
-    $("#voice-child").hide()
-    $('#availablePhonemes').val "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z"
-    $("span.voice").removeClass "selected"
-    $("#voice-female").addClass "selected"
 
   @record = ->
     $("#record-start-stop").addClass "recording"
@@ -106,8 +93,7 @@ class Router extends Backbone.Router
     "joinPhonemes": "joinPhonemes"
     "availablePhonemes": "availablePhonemes"
     "listenPhonemes": "listenPhonemes"
-    "kiswhahili": "kiswhahili"
-    "english": "english"
+    "language/:language" : "changeLanguage"
 
   updateLanguage: () ->
     Papaya.updatePhonemes()
@@ -118,12 +104,8 @@ class Router extends Backbone.Router
     $("#recording-buttons").hide()
     $("#voice-selector").hide()
 
-  kiswhahili: () ->
-    Papaya.kiswhahili()
-    @updateLanguage()
-
-  english: () ->
-    Papaya.english()
+  changeLanguage: (language) ->
+    config.languages[language].onLoad()
     @updateLanguage()
 
   default: () ->
@@ -191,8 +173,6 @@ class RecordAudio
 
     $("#record-play").addClass "playing"
 
-Papaya.kiswhahili()
-Papaya.updatePhonemes()
 
 # events
 
@@ -268,7 +248,36 @@ $(document).ready () ->
         filename = "#{$("#voice-selector span.selected").text().toLowerCase()}_#{phoneme}.mp3"
         $("#listen-status").append "<br><span style='font-size:20px'>No sound file available (#{filename})</span>"
 
-Papaya.kiswhahili()
+config =
+  languages: {
+    "Kiswahili" :
+      onLoad: ->
+        $("#English").removeClass "selected"
+        $("#Kiswhahili").addClass "selected"
+        $("#voice-child").show()
+        $('#availablePhonemes').val "m,a,u,k,t,l,n,o,w,e,i,h,s,b,y,z,g,d,j,r,p,f,v,sh,ny,dh,th,ch,gh,ng',ng"
+      
+      
+    "English" :
+      onLoad: ->
+        $("#English").addClass "selected"
+        $("#Kiswhahili").removeClass "selected"
+        $("#voice-child").hide()
+        $('#availablePhonemes').val "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z"
+        $("span.voice").removeClass "selected"
+        $("#voice-female").addClass "selected"
+  }
+  default_language: "Kiswahili"
+
+available_languages =_.keys config.languages
+
+$("#navigation").prepend _.map(available_languages, (language) ->
+    "<a id='#{language}' class='language' href='#language/#{language}'>#{language}</a>"
+).join("")
+
+config.languages[config.default_language].onLoad()
+
+Papaya.updatePhonemes()
 Papaya.updateCreatedWordsDivSize()
 
 window.addEventListener("resize", ->
