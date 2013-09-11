@@ -6,6 +6,8 @@ var Papaya, RecordAudio, Router, clickortouch, maxRecordTime, router, _ref,
 
 maxRecordTime = 15000;
 
+_.mixin(_.str.exports());
+
 Papaya = (function() {
   function Papaya() {}
 
@@ -33,12 +35,12 @@ Papaya = (function() {
         $("#record-play").html("stop playing my voice");
         return Papaya.recorder.play({
           done: function() {
-            console.log("DONE");
             $("#record-play").removeClass("playing");
             return $("#record-play").html("play my voice");
           }
         });
       } else {
+        $("#record-play").removeClass("playing");
         $("#record-play").html("play my voice");
         return Papaya.recorder.stop();
       }
@@ -215,8 +217,13 @@ RecordAudio = (function() {
   };
 
   RecordAudio.prototype.stop = function() {
+    var _ref1;
+
     if (Papaya.onPhonegap()) {
       this.recordedSound.stopRecord();
+      if ((_ref1 = this.media) != null) {
+        _ref1.stop();
+      }
     } else {
       Recorder.stop();
     }
@@ -230,9 +237,7 @@ RecordAudio = (function() {
       if ((_ref1 = this.media) != null) {
         _ref1.stop();
       }
-      this.media = new Media(this.filename, function() {
-        return options.done();
-      });
+      this.media = new Media(this.filename, options.done);
       this.media.play();
     } else {
       Recorder.play({
