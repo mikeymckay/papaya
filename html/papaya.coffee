@@ -1,10 +1,9 @@
-maxRecordTime = 15000
+directoryPath = "/sdcard/Papaya"
 
 # Load string inflection library
 _.mixin(_.str.exports())
 
 class Papaya
-
 
   @onPhonegap = ->
     document.URL.indexOf( 'http://' ) is -1 && document.URL.indexOf( 'https://' ) is -1
@@ -67,9 +66,8 @@ class Papaya
       Papaya.media?.release()
       button.addClass("playing")
       console.log button
-      Papaya.media = new Media "/android_asset/www/sounds/#{$("a.language.selected").text()}/#{filename}", ->
+      Papaya.media = new Media "#{directoryPath}/sounds/#{$("a.language.selected").text()}/#{filename}", ->
         button.removeClass("playing")
-        console.log button
       Papaya.media.play()
     else
       $("#jplayer").jPlayer("setMedia",{mp3: "sounds/#{$("a.language.selected").text()}/#{filename}"})
@@ -79,7 +77,7 @@ class Papaya
     $("#record-start-stop").addClass "recording"
     $("#record-start-stop").html "stop recording"
     Papaya.recorder.record()
-    @autoStop = _.delay(@stop, maxRecordTime)
+    @autoStop = _.delay(@stop, config.maxRecordTime)
 
   @stop = ->
     $("#record-start-stop").removeClass "recording"
@@ -105,7 +103,18 @@ class Router extends Backbone.Router
     $("#voice-selector").hide()
 
   changeLanguage: (language) ->
-    config.languages[language].onLoad()
+    $("a.language").removeClass "selected"
+    $("##{language}").addClass "selected"
+    languageSettings = config.languages[language]
+    $('#availablePhonemes').val languageSettings.phonemes
+    languageSettings.onLoad?()
+
+    $("#voice-selector").html _.map(languageSettings.voices, (voice) ->
+      "<span class='voice' id='voice-#{voice.toLowerCase()}'>#{voice}</span> "
+    ).join("")
+# Make first voice the default
+    $($(".voice")[0]).addClass "selected"
+
     @updateLanguage()
 
   default: () ->
@@ -231,9 +240,7 @@ $(document).on clickortouch, ".phoneme-button", (event) ->
         $("#listen-status").html ""
       , 1000
 
-
-
-$("#voice-selector span").click (event) ->
+$("#voice-selector").on "click", "span", (event) ->
   $(event.target).siblings().removeClass "selected"
   $(event.target).addClass "selected"
 
@@ -248,36 +255,24 @@ $(document).ready () ->
         filename = "#{$("#voice-selector span.selected").text().toLowerCase()}_#{phoneme}.mp3"
         $("#listen-status").append "<br><span style='font-size:20px'>No sound file available (#{filename})</span>"
 
-config =
-  languages: {
-    "Kiswahili" :
-      onLoad: ->
-        $("#English").removeClass "selected"
-        $("#Kiswhahili").addClass "selected"
-        $("#voice-child").show()
-        $('#availablePhonemes').val "m,a,u,k,t,l,n,o,w,e,i,h,s,b,y,z,g,d,j,r,p,f,v,sh,ny,dh,th,ch,gh,ng',ng"
-      
-      
-    "English" :
-      onLoad: ->
-        $("#English").addClass "selected"
-        $("#Kiswhahili").removeClass "selected"
-        $("#voice-child").hide()
-        $('#availablePhonemes').val "a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z"
-        $("span.voice").removeClass "selected"
-        $("#voice-female").addClass "selected"
-  }
-  default_language: "Kiswahili"
+config = {}
 
-available_languages =_.keys config.languages
 
-$("#navigation").prepend _.map(available_languages, (language) ->
-    "<a id='#{language}' class='language' href='#language/#{language}'>#{language}</a>"
-).join("")
+$.ajax
+  url: "config.json"
+  dataType: "json"
+  error: (error) -> console.log JSON.stringify(error)
+  success: (result) ->
+    config = result
+    console.log "LOADED: #{JSON.stringify config}"
 
-config.languages[config.default_language].onLoad()
 
-Papaya.updatePhonemes()
+    available_languages =_.keys config.languages
+
+    $("#navigation").prepend _.map(available_languages, (language) ->
+        "<a id='#{language}' class='language' href='#language/#{language}'>#{language}</a>"
+    ).join("")
+
 Papaya.updateCreatedWordsDivSize()
 
 window.addEventListener("resize", ->
@@ -285,9 +280,85 @@ window.addEventListener("resize", ->
 , false)
 
 if Papaya.onPhonegap()
-  document.addEventListener("deviceready", ->
-    navigator.splashscreen.hide()
-    Papaya.recorder = new RecordAudio()
-  , false)
+  document.addEventListener("deviceready"
+     ->
+      navigator.splashscreen.hide()
+      Papaya.recorder = new RecordAudio()
+
+      # Check if we have a papaya dir
+      gapFile.readDirectory directoryPath,
+        (directoryEntries) ->
+
+        # Does not exist so copy all files from "/android_asset/www/sounds" to papaya/sounds
+        (error) ->
+          gapFile.mkDirectory directoryPath
+
+          filesToCopy = []
+          dirsToCreate = []
+          console.log JSON.stringify config.languages
+          for language,data of config.languages
+            console.log language
+            dirsToCreate.push "#{directoryPath}/sounds/#{language}"
+            for phoneme in data.phonemes.split(/, */)
+              for voice in data.voices
+                filesToCopy.push "sounds/#{language}/#{voice}_#{phoneme}.mp3"
+
+
+          onDirsCreated = _.after dirsToCreate.length, ->
+            console.log "Created #{JSON.stringify dirsToCreate}"
+
+            onCopyComplete = _.after filesToCopy.length, ->
+              console.log "Finished copying #{filesToCopy.length} files"
+
+            fileTransfer = new FileTransfer()
+            _.each filesToCopy, (file) ->
+              ###
+              ajaxPath = "file:///android_asset/www/#{file}"
+              $.ajax
+                url: ajaxPath
+                error: (error) -> console.log "Error retrieving #{ajaxPath}: #{JSON.stringify(error)}"
+                success: (data) =>
+                  targetFile = "#{directoryPath}/#{file}"
+                  gapFile.writeFile targetFile,
+                    data
+                    =>
+                      console.log "Copied #{file} to #{targetFile}"
+                      onCopyComplete()
+                    (error) -> console.log "Error writing file: #{directoryPath}/#{file}: #{JSON.stringify(error)}"
+              ###
+              source = "http://lakota.vdomck.org/papaya/#{file}"
+              #source = "file:///android_asset/www/#{file}"
+              targetFile = "#{directoryPath}/#{file}"
+              fileTransfer.download source, targetFile,
+                success: (data) =>
+                  console.log "Copied #{file} to #{targetFile}"
+                  onCopyComplete()
+                (error) -> console.log "Error downloading from #{source} and saving to #{targetFile}: #{JSON.stringify(error)}"
+
+          gapFile.mkDirectory "#{directoryPath}/sounds", ->
+            for dir in dirsToCreate
+              console.log "Created #{dir}"
+              gapFile.mkDirectory "#{dir}"
+              onDirsCreated()
+    false
+  )
+
+
 else
   Papaya.recorder = new RecordAudio()
+
+
+# Used to compile for gapfile.js
+
+copyDirectory: (source, destination, success, fail) ->
+
+  window.requestFileSystem LocalFileSystem.PERSISTENT,
+    0
+    (fileSystem) ->
+      fileSystem.root.getDirectory source,
+        {create: false, exclusive: false}
+        (dirEntry) ->
+          dirEntry.copyTo destination, null, success, fail
+        fail
+    fail
+
