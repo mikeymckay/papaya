@@ -40,7 +40,7 @@
 /var/www/papaya/android/assets/www/speaker.png \
 /var/www/papaya/android/assets/www/js \
 /var/www/papaya/android/assets/www/play.png \
-/var/www/papaya/android/assets/www/config.json \
+/var/www/papaya/android/assets/www/config.json.old \
 /var/www/papaya/android/assets/www/index.html \
 /var/www/papaya/android/assets/www/js/corinthian.js \
 /var/www/papaya/android/assets/www/js/jquery.boxfit.js \

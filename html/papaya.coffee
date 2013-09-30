@@ -1,9 +1,92 @@
 directoryPath = "/sdcard/Papaya"
+serverPath = "http://papaya.tangerinecentral.org"
+defaultLanguages = ["English"]
 
 # Load string inflection library
 _.mixin(_.str.exports())
 
 class Papaya
+
+  @updateLanguages = () ->
+    available_languages = _.keys Papaya.config.languages
+
+    $("#languageSelector").html _.map(available_languages, (language) ->
+        "<a id='#{language}' class='language' href='#language/#{language}'>#{language}</a>"
+    ).join("")
+
+
+  @loadConfig = (options) ->
+    pathToConfig = "config.json"
+    if Papaya.onPhonegap()
+      pathToConfig = "file:///#{directoryPath}/#{pathToConfig}"
+
+    $.ajax
+      url: pathToConfig
+      dataType: "json"
+      error: (result) ->
+        console.log "Error downloading config file from '#{pathToConfig}': #{JSON.stringify(result)}"
+        options?.error?(result)
+      success: (result) =>
+        Papaya.config = result
+        console.log "Successfully loaded config from '#{pathToConfig}'. Using config: #{JSON.stringify(Papaya.config)}"
+        Papaya.updateLanguages()
+        options?.success?(result)
+
+  # Consider using ajax instead
+  @downloadLanguageJson = (languages, success) ->
+    url = "#{serverPath}/json_package?languages=#{languages.join(",")}"
+    targetFile = "#{directoryPath}/config.json"
+    fileTransfer = new FileTransfer()
+    fileTransfer.download url, targetFile,
+      (data) =>
+        console.log "Copied #{url} to #{targetFile}"
+        success(data)
+      (error) ->
+        console.log "Error downloading from #{url} and saving to #{targetFile}: #{JSON.stringify(error)}"
+
+  @downloadLanguageSoundFiles = ->
+    filesToCopy = []
+    dirsToCreate = []
+    console.log JSON.stringify Papaya.config
+    for language,data of Papaya.config.languages
+      console.log "#{directoryPath}/#{language}"
+      dirsToCreate.push "#{directoryPath}/#{language}"
+      for phoneme in data.phonemes
+        for voice in data.voices
+          filesToCopy.push "#{language}/#{voice}_#{phoneme}.mp3"
+
+    onDirsCreated = _.after dirsToCreate.length, ->
+      console.log "Created #{JSON.stringify dirsToCreate} (unless they already existed)"
+
+      onCopyComplete = _.after filesToCopy.length, ->
+        console.log "Finished copying #{filesToCopy.length} files"
+
+      fileTransfer = new FileTransfer()
+      _.each filesToCopy, (file) ->
+        source = "#{serverPath}/uploads/#{file}"
+        #source = "file:///android_asset/www/#{file}"
+        targetFile = "#{directoryPath}/#{file}"
+        fileTransfer.download source, targetFile,
+          (data) =>
+            console.log "Copied #{file} to #{targetFile}"
+            onCopyComplete()
+          (error) -> console.log "Error downloading from #{source} and saving to #{targetFile}: #{JSON.stringify(error)}"
+
+    for dir in dirsToCreate
+      gapFile.mkDirectory "#{dir}"
+      onDirsCreated()
+
+  @initializePhonegapFiles = ->
+    gapFile.mkDirectory directoryPath
+
+    @downloadLanguageJson defaultLanguages, (result) =>
+      @loadConfig
+        error: (error) ->
+          console.log "Error loading config file: #{error}"
+        
+        success: ->
+          Papaya.updateLanguages()
+          Papaya.downloadLanguageSoundFiles()
 
   @onPhonegap = ->
     document.URL.indexOf( 'http://' ) is -1 && document.URL.indexOf( 'https://' ) is -1
@@ -65,8 +148,9 @@ class Papaya
     if Papaya.onPhonegap()
       Papaya.media?.release()
       button.addClass("playing")
-      console.log button
-      Papaya.media = new Media "#{directoryPath}/sounds/#{$("a.language.selected").text()}/#{filename}", ->
+      url = "#{directoryPath}/#{$("a.language.selected").text()}/#{filename}"
+      console.log "Playing #{url}"
+      Papaya.media = new Media url, ->
         button.removeClass("playing")
       Papaya.media.play()
     else
@@ -77,7 +161,7 @@ class Papaya
     $("#record-start-stop").addClass "recording"
     $("#record-start-stop").html "stop recording"
     Papaya.recorder.record()
-    @autoStop = _.delay(@stop, config.maxRecordTime)
+    @autoStop = _.delay(@stop, Papaya.config.maxRecordTime)
 
   @stop = ->
     $("#record-start-stop").removeClass "recording"
@@ -88,10 +172,47 @@ class Papaya
 class Router extends Backbone.Router
   routes:
     "": "default"
+    "downloadLanguages": "downloadLanguages"
     "joinPhonemes": "joinPhonemes"
     "availablePhonemes": "availablePhonemes"
     "listenPhonemes": "listenPhonemes"
     "language/:language" : "changeLanguage"
+
+  downloadLanguages: () ->
+    $("#downloadLanguages").show()
+    $("#downloadLanguages").html "
+      <div>
+      Currently Loaded Languages:<br/>
+      #{
+        available_languages =_.keys Papaya.config.languages
+
+        _.map(available_languages, (language) ->
+            "#{language}"
+        ).join("<br/>")
+      }
+      </div>
+      <br/>
+      <div>
+        Languages available for update/download: <div id='languages_available_for_downloading'></div>
+      </div>
+      <button type='button' id='add_update_selected_languages'>Add/update selected languages</button>
+    "
+    $.ajax
+      url: "#{serverPath}/languages"
+      dataType: "json"
+      error: (error) -> console.log JSON.stringify(error)
+      success: (result) ->
+        $('#languages_available_for_downloading').html "
+            #{
+              _.map(result, (language) -> "
+                <label for='download-#{language}'>#{language}</label>
+                <input id='download-#{language}' value='#{language}' class='check' type='checkbox' 
+                  #{if _.contains(available_languages, language) then 'checked=\'true\'' else ''}></input><br/>
+                "
+              ).join("")
+            }
+        "
+
 
   updateLanguage: () ->
     Papaya.updatePhonemes()
@@ -105,12 +226,12 @@ class Router extends Backbone.Router
   changeLanguage: (language) ->
     $("a.language").removeClass "selected"
     $("##{language}").addClass "selected"
-    languageSettings = config.languages[language]
+    languageSettings = Papaya.config.languages[language]
     $('#availablePhonemes').val languageSettings.phonemes
     languageSettings.onLoad?()
 
     $("#voice-selector").html _.map(languageSettings.voices, (voice) ->
-      "<span class='voice' id='voice-#{voice.toLowerCase()}'>#{voice}</span> "
+      "<span class='voice' id='voice-#{voice}'>#{voice}</span> "
     ).join("")
 # Make first voice the default
     $($(".voice")[0]).addClass "selected"
@@ -234,7 +355,7 @@ $(document).on clickortouch, ".phoneme-button", (event) ->
       $("#listen-status").html phoneme
 
       # Use the voice + letter to look for the mp3
-      filename = "#{$("#voice-selector span.selected").text().toLowerCase()}_#{phoneme}.mp3"
+      filename = "#{$("#voice-selector span.selected").text()}_#{phoneme}.mp3"
       Papaya.play(filename,button)
       _.delay ->
         $("#listen-status").html ""
@@ -244,6 +365,17 @@ $("#voice-selector").on "click", "span", (event) ->
   $(event.target).siblings().removeClass "selected"
   $(event.target).addClass "selected"
 
+$("#downloadLanguages").on "click", "#add_update_selected_languages", (event) ->
+  Papaya.downloadLanguageJson _.pluck($(".check:checked"), "value"), ->
+    Papaya.loadConfig
+      error: (error) ->
+        console.log "Error loading config file: #{error}"
+      success: ->
+        Papaya.downloadLanguageSoundFiles()
+    
+
+# Bootup activities
+
 router = new Router()
 Backbone.history.start()
 
@@ -252,26 +384,11 @@ $(document).ready () ->
     error: (error) ->
       if error.jPlayer.error.type is "e_url"
         phoneme = $("#listen-status").text()
-        filename = "#{$("#voice-selector span.selected").text().toLowerCase()}_#{phoneme}.mp3"
+        filename = "#{$("#voice-selector span.selected").text()}_#{phoneme}.mp3"
         $("#listen-status").append "<br><span style='font-size:20px'>No sound file available (#{filename})</span>"
 
-config = {}
+Papaya.config = {}
 
-
-$.ajax
-  url: "config.json"
-  dataType: "json"
-  error: (error) -> console.log JSON.stringify(error)
-  success: (result) ->
-    config = result
-    console.log "LOADED: #{JSON.stringify config}"
-
-
-    available_languages =_.keys config.languages
-
-    $("#navigation").prepend _.map(available_languages, (language) ->
-        "<a id='#{language}' class='language' href='#language/#{language}'>#{language}</a>"
-    ).join("")
 
 Papaya.updateCreatedWordsDivSize()
 
@@ -280,85 +397,20 @@ window.addEventListener("resize", ->
 , false)
 
 if Papaya.onPhonegap()
-  document.addEventListener("deviceready"
-     ->
+  document.addEventListener("deviceready",
+    ->
       navigator.splashscreen.hide()
       Papaya.recorder = new RecordAudio()
 
-      # Check if we have a papaya dir
-      gapFile.readDirectory directoryPath,
-        (directoryEntries) ->
-
-        # Does not exist so copy all files from "/android_asset/www/sounds" to papaya/sounds
-        (error) ->
-          gapFile.mkDirectory directoryPath
-
-          filesToCopy = []
-          dirsToCreate = []
-          console.log JSON.stringify config.languages
-          for language,data of config.languages
-            console.log language
-            dirsToCreate.push "#{directoryPath}/sounds/#{language}"
-            for phoneme in data.phonemes.split(/, */)
-              for voice in data.voices
-                filesToCopy.push "sounds/#{language}/#{voice}_#{phoneme}.mp3"
-
-
-          onDirsCreated = _.after dirsToCreate.length, ->
-            console.log "Created #{JSON.stringify dirsToCreate}"
-
-            onCopyComplete = _.after filesToCopy.length, ->
-              console.log "Finished copying #{filesToCopy.length} files"
-
-            fileTransfer = new FileTransfer()
-            _.each filesToCopy, (file) ->
-              ###
-              ajaxPath = "file:///android_asset/www/#{file}"
-              $.ajax
-                url: ajaxPath
-                error: (error) -> console.log "Error retrieving #{ajaxPath}: #{JSON.stringify(error)}"
-                success: (data) =>
-                  targetFile = "#{directoryPath}/#{file}"
-                  gapFile.writeFile targetFile,
-                    data
-                    =>
-                      console.log "Copied #{file} to #{targetFile}"
-                      onCopyComplete()
-                    (error) -> console.log "Error writing file: #{directoryPath}/#{file}: #{JSON.stringify(error)}"
-              ###
-              source = "http://lakota.vdomck.org/papaya/#{file}"
-              #source = "file:///android_asset/www/#{file}"
-              targetFile = "#{directoryPath}/#{file}"
-              fileTransfer.download source, targetFile,
-                success: (data) =>
-                  console.log "Copied #{file} to #{targetFile}"
-                  onCopyComplete()
-                (error) -> console.log "Error downloading from #{source} and saving to #{targetFile}: #{JSON.stringify(error)}"
-
-          gapFile.mkDirectory "#{directoryPath}/sounds", ->
-            for dir in dirsToCreate
-              console.log "Created #{dir}"
-              gapFile.mkDirectory "#{dir}"
-              onDirsCreated()
+      Papaya.loadConfig
+        success: (success) ->
+          console.log "Loaded config."
+        error: (error) ->
+          console.log "Could not load config, so downloading from internet"
+          Papaya.initializePhonegapFiles()
     false
   )
 
-
 else
+  Papaya.loadConfig()
   Papaya.recorder = new RecordAudio()
-
-
-# Used to compile for gapfile.js
-
-copyDirectory: (source, destination, success, fail) ->
-
-  window.requestFileSystem LocalFileSystem.PERSISTENT,
-    0
-    (fileSystem) ->
-      fileSystem.root.getDirectory source,
-        {create: false, exclusive: false}
-        (dirEntry) ->
-          dirEntry.copyTo destination, null, success, fail
-        fail
-    fail
-
