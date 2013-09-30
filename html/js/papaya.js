@@ -502,6 +502,6 @@ if (Papaya.onPhonegap()) {
     });
   }, false);
 } else {
-  Papaya.loadConfig();
+  PapayaloadConfig();
   Papaya.recorder = new RecordAudio();
 }
