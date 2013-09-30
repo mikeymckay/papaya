@@ -1,45 +1,55 @@
 <html>
   <head>
-  	<title>Papaya</title>
+    <title>Papaya</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+    <meta name="apple-touch-fullscreen" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <link rel="apple-touch-icon" href="papaya.png"/>
+    <link rel="apple-touch-startup-image" href="papaya.png">
     <link rel="stylesheet" type="text/css" href="papaya.css" media="screen" />
   </head>
   <body>
-    <img id='logo' src='papaya.png'>
-    <div id='navigation'>
-      <div id='languageSelector'></div>
-      <br/>
-      <br/>
-      <a href='#downloadLanguages'>Download Languages</a>
-      <a href='#joinPhonemes'>Join Letters</a>
-      <a href='#listenPhonemes'>Listen to Letter Sounds</a>
-      <a style='display:none' href='#availablePhonemes'>Edit Available Letters</a>
-    </div>
-    <div id='content'>
-      <div class='logo'>
+    <div id="container" class="navigating">
+      <img id='logo' src='papaya.png'>
+      <a href="#" id="navToggle" onclick="$('#container').toggleClass('navigating'); return false"><img src="nav.png" width="40" height="40"></a>
+      <div id='navigation'>
+        <div id='languageSelector'></div>
+        <br/>
+        <a href='#downloadLanguages' class="btn">Download Languages</a>
+        <a href='#joinPhonemes' class="btn">Join Letters</a>
+        <a href='#listenPhonemes' class="btn">Listen to Letter Sounds</a>
+        <a style='display:none' href='#availablePhonemes' class="btn">Edit Available Letters</a>
       </div>
-
-      <div style='display:none' id='downloadLanguages'>
-      </div>
-
-      <div class='created-words'>
-        <div id='createdWords'></div>
-      </div>
-
-      <div class='phoneme-selector'>
-
-        <div class='listen-phonemes'>
-          <div id="jplayer"></div>
-          <div id="listen-status"></div>
-
+      <div id='content'>
+        <div class='logo'>
         </div>
-        <div id='voice-selector'></div>
-        <div id='phonemeSelector'></div>
-      </div>
 
-      <div class='available-phonemes'>
-        <textarea id='availablePhonemes'></textarea>
-      </div>
+        <div style='display:none' id='downloadLanguages'>
+        </div>
 
+        <div class='created-words'>
+          <div id='createdWords'></div>
+        </div>
+
+        <div class='phoneme-selector'>
+
+          <div class='listen-phonemes'>
+            <div id="jplayer"></div>
+            <div id="listen-status"></div>
+
+          </div>
+          <div id='voice-selector'></div>
+          <div id='phonemeSelector'></div>
+        </div>
+
+        <div class='available-phonemes'>
+          <textarea id='availablePhonemes'></textarea>
+        </div>
+
+      </div>
     </div>
   </body>
 

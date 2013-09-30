@@ -172,9 +172,9 @@ Papaya = (function() {
     var heightMultiplier;
 
     if ($(window).width() > $(window).height()) {
-      heightMultiplier = .6;
+      heightMultiplier = .3;
     } else {
-      heightMultiplier = .7;
+      heightMultiplier = .3;
     }
     $('#createdWords').css({
       width: $(window).width() - 20,
