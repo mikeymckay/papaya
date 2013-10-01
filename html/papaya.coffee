@@ -397,7 +397,7 @@ window.addEventListener("resize", ->
 , false)
 
 if Papaya.onPhonegap()
-  $("#downloadLanguages").show()
+  $("[href=#downloadLanguages]").show()
   document.addEventListener("deviceready",
     ->
       navigator.splashscreen.hide()

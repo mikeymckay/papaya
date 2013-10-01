@@ -488,7 +488,7 @@ window.addEventListener("resize", function() {
 }, false);
 
 if (Papaya.onPhonegap()) {
-  $("#downloadLanguages").show();
+  $("[href=#downloadLanguages]").show();
   document.addEventListener("deviceready", function() {
     navigator.splashscreen.hide();
     Papaya.recorder = new RecordAudio();
