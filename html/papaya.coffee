@@ -397,6 +397,7 @@ window.addEventListener("resize", ->
 , false)
 
 if Papaya.onPhonegap()
+  $("#downloadLanguages").show()
   document.addEventListener("deviceready",
     ->
       navigator.splashscreen.hide()
@@ -412,5 +413,5 @@ if Papaya.onPhonegap()
   )
 
 else
-  PapayaloadConfig()
+  Papaya.loadConfig()
   Papaya.recorder = new RecordAudio()

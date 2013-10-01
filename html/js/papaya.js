@@ -488,6 +488,7 @@ window.addEventListener("resize", function() {
 }, false);
 
 if (Papaya.onPhonegap()) {
+  $("#downloadLanguages").show();
   document.addEventListener("deviceready", function() {
     navigator.splashscreen.hide();
     Papaya.recorder = new RecordAudio();
@@ -502,6 +503,6 @@ if (Papaya.onPhonegap()) {
     });
   }, false);
 } else {
-  PapayaloadConfig();
+  Papaya.loadConfig();
   Papaya.recorder = new RecordAudio();
 }
