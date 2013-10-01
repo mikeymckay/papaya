@@ -98,6 +98,9 @@ body {
 }
 #navigation a.language{
   font-size: 1em;
+  display: block;
+  margin-top: 1px;
+
 }
 #navigation a.selected{
   background-color: #ff7264;

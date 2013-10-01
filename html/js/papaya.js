@@ -238,7 +238,8 @@ Router = (function(_super) {
     "joinPhonemes": "joinPhonemes",
     "availablePhonemes": "availablePhonemes",
     "listenPhonemes": "listenPhonemes",
-    "language/:language": "changeLanguage"
+    "language/:language": "changeLanguage",
+    "selectLanguage": "selectLanguage"
   };
 
   Router.prototype.downloadLanguages = function() {
@@ -277,6 +278,7 @@ Router = (function(_super) {
 
     $("a.language").removeClass("selected");
     $("#" + language).addClass("selected");
+    $("a.language").not(".selected").hide();
     languageSettings = Papaya.config.languages[language];
     $('#availablePhonemes').val(languageSettings.phonemes);
     if (typeof languageSettings.onLoad === "function") {
@@ -287,6 +289,10 @@ Router = (function(_super) {
     }).join(""));
     $($(".voice")[0]).addClass("selected");
     return this.updateLanguage();
+  };
+
+  Router.prototype.selectLanguage = function() {
+    return $("a.language").not(".selected").show();
   };
 
   Router.prototype["default"] = function() {
@@ -461,10 +467,6 @@ $("#downloadLanguages").on("click", "#add_update_selected_languages", function(e
   });
 });
 
-router = new Router();
-
-Backbone.history.start();
-
 $(document).ready(function() {
   return $("#jplayer").jPlayer({
     error: function(error) {
@@ -487,6 +489,8 @@ window.addEventListener("resize", function() {
   return Papaya.updateCreatedWordsDivSize();
 }, false);
 
+router = new Router();
+
 if (Papaya.onPhonegap()) {
   $("[href=#downloadLanguages]").show();
   document.addEventListener("deviceready", function() {
@@ -494,6 +498,7 @@ if (Papaya.onPhonegap()) {
     Papaya.recorder = new RecordAudio();
     return Papaya.loadConfig({
       success: function(success) {
+        Backbone.history.start();
         return console.log("Loaded config.");
       },
       error: function(error) {
@@ -504,5 +509,6 @@ if (Papaya.onPhonegap()) {
   }, false);
 } else {
   Papaya.loadConfig();
+  Backbone.history.start();
   Papaya.recorder = new RecordAudio();
 }

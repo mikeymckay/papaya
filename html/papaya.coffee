@@ -177,6 +177,7 @@ class Router extends Backbone.Router
     "availablePhonemes": "availablePhonemes"
     "listenPhonemes": "listenPhonemes"
     "language/:language" : "changeLanguage"
+    "selectLanguage" : "selectLanguage"
 
   downloadLanguages: () ->
     $("#downloadLanguages").show()
@@ -226,6 +227,7 @@ class Router extends Backbone.Router
   changeLanguage: (language) ->
     $("a.language").removeClass "selected"
     $("##{language}").addClass "selected"
+    $("a.language").not(".selected").hide()
     languageSettings = Papaya.config.languages[language]
     $('#availablePhonemes').val languageSettings.phonemes
     languageSettings.onLoad?()
@@ -237,6 +239,9 @@ class Router extends Backbone.Router
     $($(".voice")[0]).addClass "selected"
 
     @updateLanguage()
+
+  selectLanguage: ->
+    $("a.language").not(".selected").show()
 
   default: () ->
     $("#content>div").hide()
@@ -306,9 +311,13 @@ class RecordAudio
 
 # events
 
+
+
 $(document).on "change", "#availablePhonemes", Papaya.updatePhonemes
 
 clickortouch = if Papaya.onPhonegap() then "touchend" else "click"
+
+
 
 $(document).on clickortouch, ".phoneme-button", (event) ->
   switch Backbone.history.fragment
@@ -376,9 +385,6 @@ $("#downloadLanguages").on "click", "#add_update_selected_languages", (event) ->
 
 # Bootup activities
 
-router = new Router()
-Backbone.history.start()
-
 $(document).ready () ->
   $("#jplayer").jPlayer
     error: (error) ->
@@ -396,6 +402,8 @@ window.addEventListener("resize", ->
   Papaya.updateCreatedWordsDivSize()
 , false)
 
+router = new Router()
+
 if Papaya.onPhonegap()
   $("[href=#downloadLanguages]").show()
   document.addEventListener("deviceready",
@@ -405,6 +413,7 @@ if Papaya.onPhonegap()
 
       Papaya.loadConfig
         success: (success) ->
+          Backbone.history.start()
           console.log "Loaded config."
         error: (error) ->
           console.log "Could not load config, so downloading from internet"
@@ -414,4 +423,6 @@ if Papaya.onPhonegap()
 
 else
   Papaya.loadConfig()
+  Backbone.history.start()
+
   Papaya.recorder = new RecordAudio()

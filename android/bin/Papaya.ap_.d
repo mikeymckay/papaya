@@ -31,7 +31,6 @@
 /var/www/papaya/android/bin/res/drawable-mdpi/splash.png \
 /var/www/papaya/android/bin/res/drawable-mdpi/ic_launcher.png \
 /var/www/papaya/android/assets/www \
-/var/www/papaya/android/assets/www/vuvu.mp3 \
 /var/www/papaya/android/assets/www/andika.ttf \
 /var/www/papaya/android/assets/www/papaya.coffee \
 /var/www/papaya/android/assets/www/papaya.png \
@@ -40,8 +39,8 @@
 /var/www/papaya/android/assets/www/speaker.png \
 /var/www/papaya/android/assets/www/js \
 /var/www/papaya/android/assets/www/play.png \
-/var/www/papaya/android/assets/www/config.json.old \
 /var/www/papaya/android/assets/www/index.html \
+/var/www/papaya/android/assets/www/nav.png \
 /var/www/papaya/android/assets/www/js/corinthian.js \
 /var/www/papaya/android/assets/www/js/jquery.boxfit.js \
 /var/www/papaya/android/assets/www/js/coffee-script.js \
