@@ -1,0 +1,249 @@
+@font-face {
+    font-family: 'Andika';
+    font-style: normal;
+    font-weight: 400;
+    src: url('./andika.ttf') format('truetype');
+}
+
+body {
+  margin:0;
+  padding: 0;
+  background-color: #efefeb;
+}
+
+.phoneme-selector,.created-words,.available-phonemes,.listen-phonemes{
+  display: none;
+}
+.phoneme-selector{
+  position:absolute;
+  bottom: 50px;
+}
+
+#navToggle {
+  width:40px;
+  margin-bottom:15px;
+  position: absolute;
+  z-index: 6;
+}
+
+/* Here starts top navigation */
+#navigation {
+  padding-top:55px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 320px;
+  height: 100%;
+  z-index: 1;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  transition: opacity 0s .25s;
+  -moz-transition: opacity 0s .25s;
+  -webkit-transition: opacity 0s .25s;
+  background: #79aa00;
+}
+
+#container.navigating #navigation {
+  opacity: 1;
+  transition: opacity 0s 0s;
+  -moz-transition: opacity 0s 0s;
+  -webkit-transition: opacity 0s 0s;
+}
+
+#content {
+  display: block;
+  position: relative;
+  height: 100%;
+  background-color: #efefeb;
+  transform: translate3D(0,0,0);
+  -moz-transform: translate3D(0,0,0);
+  -webkit-transform: translate3D(0,0,0);
+  transition: -moz-transform .25s ease-in-out;
+  -moz-transition: -moz-transform .25s ease-in-out;
+  -webkit-transition: -webkit-transform .25s ease-in-out;
+  z-index: 5;
+}
+
+/* Translate main container when nav handler is checked */
+#container.navigating #content {
+  transform: translate3D(320px,0,0); /* X value must be same as Nav width */
+  -moz-transform: translate3D(320px,0,0); /* X value must be same as Nav width */
+  -webkit-transform: translate3D(320px,0,0); /* X value must be same as Nav width */
+}
+
+#navigation a {
+  background-color: #99ca20;
+  color: white;
+  border-radius:5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  font-family: Andika;
+  font-size: 1.6em;
+  line-heigh: 28px;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 500;
+  margin: 0 10px 0 10px;
+}
+
+#navigation a.btn {
+  display: block;
+  width: 285px;
+  margin-top: 4px;
+}
+
+#navigation a:hover {
+  text-decoration: none;
+  color: #ff7264;
+}
+#navigation a.language{
+  font-size: 1em;
+  display: block;
+  margin-top: 1px;
+
+}
+#navigation a.selected{
+  background-color: #ff7264;
+}
+#navigation a.selected:hover {
+  color: #99ca20;
+}
+
+/* Here ends top navigation */
+
+  #listen-status{
+    font-size: 500%;
+    text-align: center;
+  }
+
+  #availablePhonemes{
+    font-size: 400%
+  }
+/* Start voice selector menu */
+  #voice-selector{
+  margin: 20px 10px;
+  }
+
+  #voice-selector span{
+    background-color: grey;
+    font-size: 300%;
+  }
+  #voice-selector span.selected{
+    background-color: #ff7264;
+  }
+/* End voice selector menu */
+
+/* Start phoneme selector */
+.phoneme-selector {
+  min-height: 40px;
+  padding: 0;
+  border-top: 1px solid #eaeaea;
+  display: block;
+  width: 95%;
+  bottom: 10px;
+}
+#phonemeSelector {
+  width: 98%;
+  margin: 0 10px 0 10px;
+}
+#phonemeSelector span.phoneme-button {
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: #ffb064;
+  color: white;
+  font-family: Andika;
+  font-size: 2em;
+  line-height: 40px;
+  border: 0;
+  padding-left:5px;
+  padding-right:5px;
+  display: inline-block;
+  margin-bottom:5px;
+  min-width: 18px;
+  text-align: center;
+}
+
+#phonemeSelector span.shift-active {
+  background-color: #99ca20;
+}
+
+#phonemeSelector span.phoneme-button:hover {
+  color: #ff7264;
+}
+
+span#record-play {
+  cursor: pointer;
+  color: #ffb064;
+  font-family: Andika;
+  font-size: 2em;
+  line-height: 28px;
+  border: 0;
+}
+/* End phoneme selector */
+
+/* Start voice selector */
+#voice-selector span {
+  cursor: pointer;
+  font-family: Andika;
+  color: #fff;
+  border:1px solid #ffb064;
+  border-radius:5px;
+  background: url('speaker.png') no-repeat 3 2 #ffb064;
+  font-size: 1.2em;
+  padding: 5px 5px 5px 40px;
+}
+/* Start voice selector */
+
+/* Start words */
+#createdWords {
+  font-family: Andika;
+  color: #222;
+}
+/* End words */
+/* Start Button */
+.record-phonemes button {
+  cursor: pointer;
+  font-family: Andika;
+  color: #fff;
+  border:1px solid #ffb064;
+  border-radius:5px;
+  background: #ffb064;
+  font-size: 1.2em;
+  padding: 5px;
+  font-weight: 500;
+}
+span#record-start-stop, span#record-play {
+  cursor: pointer;
+  font-family: Andika;
+  color: #fff;
+  border:1px solid #ffb064;
+  border-radius:5px;
+  background: #ffb064;
+  font-size: 1.2em;
+  font-weight: 500;
+}
+span#record-start-stop {
+  background: url('mic.png') no-repeat 0 2 #ffb064;
+  padding: 5px 10px 5px 30px;
+}
+span#record-start-stop.recording, span#record-play.playing, #phonemeSelector span.phoneme-button.playing {
+  color: white;
+  background-color: #ff7264;
+}
+span#record-play {
+  background: url('play.png') no-repeat 5 4 #ffb064;
+  padding: 5px 10px 5px 45px;
+}
+
+/* End Button */
+
+img#logo{
+  max-width: 10%;
+  max-height: 10%;
+  position: absolute;
+  right: 5px;
+  top: 5px;
+}
+
+
+
