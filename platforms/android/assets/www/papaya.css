@@ -97,7 +97,7 @@ body {
   color: #ff7264;
 }
 #navigation a.language{
-  font-size: 1em;
+  font-size: 1.5em;
   display: block;
   margin-top: 1px;
 
@@ -159,7 +159,8 @@ body {
   padding-right:5px;
   display: inline-block;
   margin-bottom:5px;
-  min-width: 18px;
+  min-width: 60px;
+  min-height: 60px;
   text-align: center;
 }
 

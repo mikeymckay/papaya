@@ -1,6 +1,7 @@
-directoryPath = "/sdcard/Papaya"
+appName = "Papaya"
+directoryPath = "/sdcard/#{appName}"
 serverPath = "http://papaya.tangerinecentral.org"
-defaultLanguages = ["English"]
+defaultLanguages = ["English","Kiswahili"]
 
 # Load string inflection library
 _.mixin(_.str.exports())
@@ -18,7 +19,7 @@ class Papaya
   @loadConfig = (options) ->
     pathToConfig = "config.json"
     if Papaya.onPhonegap()
-      pathToConfig = "file:///#{directoryPath}/#{pathToConfig}"
+      pathToConfig = "file://#{directoryPath}/#{pathToConfig}"
 
     $.ajax
       url: pathToConfig
@@ -76,44 +77,78 @@ class Papaya
       gapFile.mkDirectory "#{dir}"
       onDirsCreated()
 
+  @deletePapayaAssetsIfExists = (options) ->
+    # Delete any old files
+    #
+    #
+    console.log "Looking for old Papaya files to delete"
+    window.requestFileSystem LocalFileSystem.PERSISTENT, 0, (fileSystem) ->
+      fileSystem.root.getDirectory appName, {
+        create: false
+        exclusive: false
+      }
+      , (directoryEntry) ->
+          directoryEntry.removeRecursively ->
+            console.log "Removed #{appName} directory and all it's contents"
+            options.success?()
+          , ->
+            console.log "Failed to remove #{appName}"
+            options.error?()
+      , ->
+        console.log "#{appName} directory does not exist"
+        options.success?()
+          
+
   @initializePhonegapFiles = ->
 
-    window.plugins.asset2sd.startActivity {
-        asset_file: "www/config/config.json",
-        destination_file_location: directoryPath
-        destination_file: "config.json"
-      },
-        () ->
-          console.log "Initialized config.json"
-          Papaya.loadConfig
-            error: (error) ->
-              console.log "Error loading config file: #{error}"
-            success: ->
-              Papaya.downloadLanguageSoundFiles()
+    #@deletePapayaAssetsIfExists
+    #  success: ->
 
-              for language,data of Papaya.config.languages
-                for phoneme in data.phonemes
-                  for voice in data.voices
-                    window.plugins.asset2sd.startActivity {
-                        asset_file: "www/languages/#{language}/#{voice}_#{phoneme}.mp3"
-                        destination_file_location: "directoryPath/#{language}"
-                        destination_file: "#{voice}_#{phoneme}.mp3"
-                      },
-                        () -> console.log "Copied www/#{language}/#{voice}_#{phoneme}.mp3"
-                      ,
-                        () -> console.log "ERROR: Could no copy www/#{language}/#{voice}_#{phoneme}.mp3"
-      ,
-        () ->
-          console.log "Failed to initialize config.json"
+        configPath = "www/config/config.json"
 
-    @downloadLanguageJson defaultLanguages, (result) =>
-      @loadConfig
-        error: (error) ->
-          console.log "Error loading config file: #{error}"
-        
-        success: ->
-          Papaya.updateLanguages()
-          Papaya.downloadLanguageSoundFiles()
+        window.plugins.asset2sd.startActivity {
+            asset_file: "www/config/config.json",
+            destination_file_location: appName
+            destination_file: "config.json"
+          },
+            () ->
+              console.log "Successfully copied from #{configPath} to #{appName}. Waiting half a second before loading it."
+              _.delay ->
+                Papaya.loadConfig
+                  error: (error) ->
+                    console.log "Error loading config file after copying from assets: #{JSON.stringify error}"
+                    throw
+                      name:'LoadConfigError'
+                      message:"Could not load config file: #{JSON.stringify error}"
+                  success: ->
+
+
+                    fileCount = 0
+                    for language,data of Papaya.config.languages
+                      for phoneme in data.phonemes
+                        for voice in data.voices
+                          fileCount += 1
+
+                    reloadAfterAllFilesTransferred = _.after fileCount, -> document.location.reload()
+
+                    for language,data of Papaya.config.languages
+                      for phoneme in data.phonemes
+                        for voice in data.voices
+                          window.plugins.asset2sd.startActivity {
+                              asset_file: "www/languages/#{language}/#{voice}_#{phoneme}.mp3"
+                              destination_file_location: "#{appName}/#{language}"
+                              destination_file: "#{voice}_#{phoneme}.mp3"
+                            },
+                              () ->
+                                reloadAfterAllFilesTransferred()
+                                console.log "Copied www/#{language}/#{voice}_#{phoneme}.mp3"
+                                $("body").append "Copied www/#{language}/#{voice}_#{phoneme}.mp3"
+                            ,
+                              (error) -> console.log "ERROR: Could not copy www/#{language}/#{voice}_#{phoneme}.mp3: #{JSON.stringify error}"
+              , 500
+          ,
+            () ->
+              console.log "Failed to initialize config.json"
 
   @onPhonegap = ->
     document.URL.indexOf( 'http://' ) is -1 && document.URL.indexOf( 'https://' ) is -1
@@ -433,7 +468,7 @@ router = new Router()
 
 
 if Papaya.onPhonegap()
-  $("[href=#downloadLanguages]").show()
+  #$("[href=#downloadLanguages]").show()
   document.addEventListener("deviceready",
     ->
       #navigator.splashscreen.hide()
@@ -445,9 +480,13 @@ if Papaya.onPhonegap()
           console.log "Loaded config."
         error: (error) ->
           console.log "Could not load config, initializing Phonegap files"
-          $("#content").html "<h1>Initializing system...</h1>"
+          $("body").html "<div id='phonemeSelector'>" + _.map("Preparing Papaya for it's first run...".split(""), (letter) ->
+            if letter is " "
+              "<br/>"
+            else
+              "<span style='width:20px;height:20px' class='phoneme-button button'>#{letter}</span>"
+          ).join("") + "</div>"
           Papaya.initializePhonegapFiles()
-          document.location.reload()
     false
   )
 
