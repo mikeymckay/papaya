@@ -587,7 +587,15 @@ if (Papaya.onPhonegap()) {
     return Papaya.loadConfig({
       success: function(success) {
         Backbone.history.start();
-        return console.log("Loaded config.");
+        console.log(Papaya.config.context !== "Kenya PRIMR" || Papaya.config.version < 1);
+        console.log("Loaded config");
+        if (Papaya.config.context !== "Kenya PRIMR" || Papaya.config.version < 1) {
+          return Papaya.deletePapayaAssetsIfExists({
+            success: function() {
+              return document.location.reload();
+            }
+          });
+        }
       },
       error: function(error) {
         console.log("Could not load config, initializing Phonegap files");
