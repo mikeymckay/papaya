@@ -145,6 +145,8 @@ body {
 #phonemeSelector {
   width: 98%;
   margin: 0 10px 0 10px;
+  height: 380px;
+  overflow: scroll;
 }
 #phonemeSelector span.phoneme-button {
   border-radius: 5px;
@@ -159,8 +161,8 @@ body {
   padding-right:5px;
   display: inline-block;
   margin-bottom:5px;
-  min-width: 60px;
-  min-height: 60px;
+  min-width: 50px;
+  min-height: 50px;
   text-align: center;
 }
 
@@ -245,6 +247,5 @@ img#logo{
   right: 5px;
   top: 5px;
 }
-
 
 

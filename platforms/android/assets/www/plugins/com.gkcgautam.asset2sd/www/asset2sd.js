@@ -1,4 +1,4 @@
-cordova.define("com.gkcgautam.asset2sd.Asset2SD", function(require, exports, module) {/**
+cordova.define("com.gkcgautam.asset2sd.Asset2SD", function(require, exports, module) { /**
  * Asset2SD Phonegap ANdroid plugin
  * https://github.com/gkcgautam/Asset2SD
  *
@@ -21,4 +21,5 @@ cordova.define("com.gkcgautam.asset2sd.Asset2SD", function(require, exports, mod
   window.plugins = window.plugins || {};
   window.plugins.asset2sd = window.asset2sd;
 })(window.PhoneGap || window.Cordova || window.cordova);
+
 });
