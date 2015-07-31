@@ -17,6 +17,7 @@ body {
 .phoneme-selector{
   position:absolute;
   bottom: 50px;
+  margin-top:10px;
 }
 
 #navToggle {
@@ -64,14 +65,7 @@ body {
   z-index: 5;
 }
 
-/* Translate main container when nav handler is checked */
-#container.navigating #content {
-  transform: translate3D(320px,0,0); /* X value must be same as Nav width */
-  -moz-transform: translate3D(320px,0,0); /* X value must be same as Nav width */
-  -webkit-transform: translate3D(320px,0,0); /* X value must be same as Nav width */
-}
-
-#navigation a {
+a {
   background-color: #99ca20;
   color: white;
   border-radius:5px;
@@ -86,27 +80,25 @@ body {
   margin: 0 10px 0 10px;
 }
 
-#navigation a.btn {
+a.btn {
   display: block;
   width: 285px;
   margin-top: 4px;
 }
 
-#navigation a:hover {
+a:hover {
   text-decoration: none;
   color: #ff7264;
 }
-#navigation a.language{
+a.language{
   font-size: 1.5em;
-  display: block;
+  display: inline;
   margin-top: 1px;
+  background-color:grey;
 
 }
-#navigation a.selected{
-  background-color: #ff7264;
-}
-#navigation a.selected:hover {
-  color: #99ca20;
+a.selected{
+  background-color: #99ca20;
 }
 
 /* Here ends top navigation */
@@ -128,8 +120,12 @@ body {
     background-color: grey;
     font-size: 300%;
   }
+  #voice-selector span:hover {
+    text-decoration: none;
+    color: #ff7264;
+  }
   #voice-selector span.selected{
-    background-color: #ff7264;
+    background-color: #99ca20;
   }
 /* End voice selector menu */
 
@@ -144,7 +140,7 @@ body {
 }
 #phonemeSelector {
   width: 98%;
-  margin: 0 10px 0 10px;
+  margin: 10px 10px 0 10px;
   height: 380px;
   overflow: scroll;
 }

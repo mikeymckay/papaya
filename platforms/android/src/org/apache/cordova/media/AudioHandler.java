@@ -20,15 +20,20 @@ package org.apache.cordova.media;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.CordovaResourceApi;
 
 import android.content.Context;
 import android.media.AudioManager;
+import android.net.Uri;
+import android.util.Log;
 
 import java.util.ArrayList;
 
 import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.HashMap;
 
 /**
@@ -47,6 +52,8 @@ public class AudioHandler extends CordovaPlugin {
     public static String TAG = "AudioHandler";
     HashMap<String, AudioPlayer> players;	// Audio player object
     ArrayList<AudioPlayer> pausedForPhone;     // Audio players that were paused when phone call came in
+    private int origVolumeStream = -1;
+    private CallbackContext messageChannel;
 
     /**
      * Constructor.
@@ -64,17 +71,34 @@ public class AudioHandler extends CordovaPlugin {
      * @return 				A PluginResult object with a status and message.
      */
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+        CordovaResourceApi resourceApi = webView.getResourceApi();
         PluginResult.Status status = PluginResult.Status.OK;
         String result = "";
 
         if (action.equals("startRecordingAudio")) {
-            this.startRecordingAudio(args.getString(0), FileHelper.stripFileProtocol(args.getString(1)));
+            String target = args.getString(1);
+            String fileUriStr;
+            try {
+                Uri targetUri = resourceApi.remapUri(Uri.parse(target));
+                fileUriStr = targetUri.toString();
+            } catch (IllegalArgumentException e) {
+                fileUriStr = target;
+            }
+            this.startRecordingAudio(args.getString(0), FileHelper.stripFileProtocol(fileUriStr));
         }
         else if (action.equals("stopRecordingAudio")) {
             this.stopRecordingAudio(args.getString(0));
         }
         else if (action.equals("startPlayingAudio")) {
-            this.startPlayingAudio(args.getString(0), FileHelper.stripFileProtocol(args.getString(1)));
+            String target = args.getString(1);
+            String fileUriStr;
+            try {
+                Uri targetUri = resourceApi.remapUri(Uri.parse(target));
+                fileUriStr = targetUri.toString();
+            } catch (IllegalArgumentException e) {
+                fileUriStr = target;
+            }
+            this.startPlayingAudio(args.getString(0), FileHelper.stripFileProtocol(fileUriStr));
         }
         else if (action.equals("seekToAudio")) {
             this.seekToAudio(args.getString(0), args.getInt(1));
@@ -103,12 +127,15 @@ public class AudioHandler extends CordovaPlugin {
         else if (action.equals("create")) {
             String id = args.getString(0);
             String src = FileHelper.stripFileProtocol(args.getString(1));
-            AudioPlayer audio = new AudioPlayer(this, id, src);
-            this.players.put(id, audio);
+            getOrCreatePlayer(id, src);
         }
         else if (action.equals("release")) {
             boolean b = this.release(args.getString(0));
             callbackContext.sendPluginResult(new PluginResult(status, b));
+            return true;
+        }
+        else if (action.equals("messageChannel")) {
+            messageChannel = callbackContext;
             return true;
         }
         else { // Unrecognized action.
@@ -124,6 +151,9 @@ public class AudioHandler extends CordovaPlugin {
      * Stop all audio players and recorders.
      */
     public void onDestroy() {
+        if (!players.isEmpty()) {
+            onLastPlayerReleased();
+        }
         for (AudioPlayer audio : this.players.values()) {
             audio.destroy();
         }
@@ -178,16 +208,30 @@ public class AudioHandler extends CordovaPlugin {
     // LOCAL METHODS
     //--------------------------------------------------------------------------
 
+    private AudioPlayer getOrCreatePlayer(String id, String file) {
+        AudioPlayer ret = players.get(id);
+        if (ret == null) {
+            if (players.isEmpty()) {
+                onFirstPlayerCreated();
+            }
+            ret = new AudioPlayer(this, id, file);
+            players.put(id, ret);
+        }
+        return ret;
+    }
+
     /**
      * Release the audio player instance to save memory.
      * @param id				The id of the audio player
      */
     private boolean release(String id) {
-        if (!this.players.containsKey(id)) {
+        AudioPlayer audio = players.remove(id);
+        if (audio == null) {
             return false;
         }
-        AudioPlayer audio = this.players.get(id);
-        this.players.remove(id);
+        if (players.isEmpty()) {
+            onLastPlayerReleased();
+        }
         audio.destroy();
         return true;
     }
@@ -198,11 +242,7 @@ public class AudioHandler extends CordovaPlugin {
      * @param file				The name of the file
      */
     public void startRecordingAudio(String id, String file) {
-        AudioPlayer audio = this.players.get(id);
-        if ( audio == null) {
-            audio = new AudioPlayer(this, id, file);
-            this.players.put(id, audio);
-        }
+        AudioPlayer audio = getOrCreatePlayer(id, file);
         audio.startRecording(file);
     }
 
@@ -223,11 +263,7 @@ public class AudioHandler extends CordovaPlugin {
      * @param file				The name of the audio file.
      */
     public void startPlayingAudio(String id, String file) {
-        AudioPlayer audio = this.players.get(id);
-        if (audio == null) {
-            audio = new AudioPlayer(this, id, file);
-            this.players.put(id, audio);
-        }
+        AudioPlayer audio = getOrCreatePlayer(id, file);
         audio.startPlaying(file);
     }
 
@@ -262,8 +298,6 @@ public class AudioHandler extends CordovaPlugin {
         AudioPlayer audio = this.players.get(id);
         if (audio != null) {
             audio.stopPlaying();
-            //audio.destroy();
-            //this.players.remove(id);
         }
     }
 
@@ -287,19 +321,8 @@ public class AudioHandler extends CordovaPlugin {
      * @return					The duration in msec.
      */
     public float getDurationAudio(String id, String file) {
-
-        // Get audio file
-        AudioPlayer audio = this.players.get(id);
-        if (audio != null) {
-            return (audio.getDuration(file));
-        }
-
-        // If not already open, then open the file
-        else {
-            audio = new AudioPlayer(this, id, file);
-            this.players.put(id, audio);
-            return (audio.getDuration(file));
-        }
+        AudioPlayer audio = getOrCreatePlayer(id, file);
+        return audio.getDuration(file);
     }
 
     /**
@@ -352,6 +375,36 @@ public class AudioHandler extends CordovaPlugin {
             audio.setVolume(volume);
         } else {
             System.out.println("AudioHandler.setVolume() Error: Unknown Audio Player " + id);
+        }
+    }
+
+    private void onFirstPlayerCreated() {
+        origVolumeStream = cordova.getActivity().getVolumeControlStream();
+        cordova.getActivity().setVolumeControlStream(AudioManager.STREAM_MUSIC);
+    }
+
+    private void onLastPlayerReleased() {
+        if (origVolumeStream != -1) {
+            cordova.getActivity().setVolumeControlStream(origVolumeStream);
+            origVolumeStream = -1;
+        }
+    }
+
+    void sendEventMessage(String action, JSONObject actionData) {
+        JSONObject message = new JSONObject();
+        try {
+            message.put("action", action);
+            if (actionData != null) {
+                message.put(action, actionData);
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "Failed to create event message", e);
+        }
+
+        PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, message);
+        pluginResult.setKeepCallback(true);
+        if (messageChannel != null) {
+            messageChannel.sendPluginResult(pluginResult);
         }
     }
 }
