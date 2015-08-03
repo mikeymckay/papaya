@@ -36,7 +36,6 @@ Papaya = (function() {
     var available_languages;
     available_languages = _.keys(Papaya.config.languages);
     return $("#languageSelector").html(_.map(available_languages, function(language) {
-      console.log(language);
       return "<a id='" + (languageAsId(language)) + "' class='language' href='#language/" + language + "'>" + language + "</a>";
     }).join(""));
   };
@@ -80,20 +79,10 @@ Papaya = (function() {
     });
     phonemes = $("#availablePhonemes").val().split(/, */);
     buttonCounter = 0;
-    console.log($("a.language.selected").text());
     columnLimit = (ref = Papaya.config.languages[$("a.language.selected").text()].keyboard) != null ? ref.columns : void 0;
     $('#phonemeSelector').html(_.map(phonemes, function(phoneme, index) {
-      var extraEnglishPhonemeSounds, result;
-      result = "<span class='phoneme-button button'>" + phoneme + "</span> ";
-      if (((buttonCounter += 1) % columnLimit) === 0) {
-        result += "<br/>";
-      }
-      if (phoneme === "z" && $("a.language.selected").text() === "English") {
-        extraEnglishPhonemeSounds = true;
-        result = result + ("<span style='background-color:#efefeb;' class='phoneme-button '>&nbsp;</span>" + (((buttonCounter += 1) % columnLimit) === 0 ? "<br/>" : "") + " ");
-        console.log(buttonCounter);
-      }
-      return result;
+      var result;
+      return result = "<span class='phoneme-button button'>" + phoneme + "</span> ";
     }).join(""));
     $('#phonemeSelector').append("<br/> <span class='phoneme-button button meta'>space</span> <span class='phoneme-button button meta'>delete</span> <span class='phoneme-button button meta'>clear</span> <!-- Doesn't make sense for this script <span id='shift' class='phoneme-button button meta'>shift</span> --> <!-- This works but removed in case of confusion <span id='playSounds' class='phoneme-button button meta'>play</span> --> <br/> <br/> <span id='recording-buttons'> <span id='record-start-stop' class='button record'>record my voice</span> <span id='record-play' style='display:none' class='button record'>play my voice</span> </span>");
     $("#record-start-stop").click(function() {

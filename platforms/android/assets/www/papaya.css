@@ -55,7 +55,7 @@ body {
   display: block;
   position: relative;
   height: 100%;
-  background-color: #efefeb;
+  background-color: #79aa00;
   transform: translate3D(0,0,0);
   -moz-transform: translate3D(0,0,0);
   -webkit-transform: translate3D(0,0,0);
@@ -133,7 +133,9 @@ a.selected{
 .phoneme-selector {
   min-height: 40px;
   padding: 0;
+  /*
   border-top: 1px solid #eaeaea;
+  */
   display: block;
   width: 95%;
   bottom: 10px;
@@ -143,6 +145,8 @@ a.selected{
   margin: 10px 10px 0 10px;
   height: 380px;
   overflow: scroll;
+  background-color:white;
+  padding: 5px;
 }
 #phonemeSelector span.phoneme-button {
   border-radius: 5px;
